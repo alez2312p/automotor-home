@@ -1,4 +1,5 @@
 import 'package:a/pages/login.dart';
+import 'package:a/pages/page2.dart';
 import 'package:flutter/material.dart';
 
 import 'package:a/pages/form.dart';
@@ -16,6 +17,7 @@ class MyApp extends StatelessWidget {
       routes: {
         'login' : (_) => Login(),
         'form' : (_) => FormPage(),
+        'page2' : (_) => Page2(),
       },
     );
   }
