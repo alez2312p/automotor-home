@@ -161,6 +161,7 @@ class _FormPageState extends State<FormPage> {
                                 if(value!.isEmpty) {
                                   return 'Por favor ingrese una placa de automotor';
                                 }
+                                return null;
                               },
                             )
                         )
@@ -188,6 +189,7 @@ class _FormPageState extends State<FormPage> {
                                 if(value!.isEmpty) {
                                   return 'Por favor ingrese nuevamente la placa del automotor';
                                 }
+                                return null;
                               },
                             ))
                       ],
@@ -317,6 +319,7 @@ class _FormPageState extends State<FormPage> {
                                 if(value!.isEmpty) {
                                   return 'Por favor ingrese la marca del automotor';
                                 }
+                                return null;
                               },
                             ))
                       ],
@@ -343,6 +346,7 @@ class _FormPageState extends State<FormPage> {
                                 if(value!.isEmpty) {
                                   return 'Por favor ingrese una placa de automotor';
                                 }
+                                return null;
                               },
                             ))
                       ],

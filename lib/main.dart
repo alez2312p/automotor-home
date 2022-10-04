@@ -10,9 +10,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'Automotor',
-      home: Login(),
+      initialRoute: 'form',
+      routes: {
+        'login' : (_) => Login(),
+        'form' : (_) => FormPage(),
+      },
     );
   }
 }
