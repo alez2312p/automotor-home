@@ -35,62 +35,63 @@ class _FormPageState extends State<FormPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            contentPadding: EdgeInsets.all(0),
+            contentPadding: const EdgeInsets.all(0),
             content: SingleChildScrollView(
               child: Column(
                 children: [
                   InkWell(
                     child: Container(
-                      padding: EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20),
                       decoration: const BoxDecoration(
                           border: Border(
                               bottom:
                                   BorderSide(color: Colors.grey, width: 1))),
                       child: Row(
                         children: [
-                          Expanded(
+                          const Expanded(
                             child: Text('Tomar una foto',
                                 style: TextStyle(fontSize: 16)),
                           ),
-                          Icon(Icons.add_a_photo_rounded)
+                          const Icon(Icons.add_a_photo_rounded)
                         ],
                       ),
                     ),
-                    onTap: (){
+                    onTap: () {
                       selectImage(1);
                     },
                   ),
                   InkWell(
                     child: Container(
-                      padding: EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20),
                       child: Row(
                         children: [
-                          Expanded(
+                          const Expanded(
                             child: Text('Seleccionar una foto',
                                 style: TextStyle(fontSize: 16)),
                           ),
-                          Icon(Icons.image)
+                          const Icon(Icons.image)
                         ],
                       ),
                     ),
-                    onTap: (){
+                    onTap: () {
                       selectImage(2);
                     },
                   ),
                   InkWell(
                     child: Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                      decoration: const BoxDecoration(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(15)),
                           color: Colors.red),
-                      padding: EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20),
                       width: double.infinity,
-                      child: Text(
+                      child: const Text(
                         'Cancelar',
                         style: TextStyle(fontSize: 16, color: Colors.white),
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    onTap: (){
+                    onTap: () {
                       Navigator.of(context).pop();
                     },
                   )
@@ -101,23 +102,23 @@ class _FormPageState extends State<FormPage> {
         });
   }
 
-    Future selectImage(op) async{
-      if (op == 1) {
-        pickedFile = await _picker.pickImage(source: ImageSource.camera);
+  Future selectImage(op) async {
+    if (op == 1) {
+      pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    } else {
+      pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    }
+    setState(() {
+      if (pickedFile != null) {
+        imagen = File(pickedFile.path);
+        rutaImg = imagen?.path.substring(33);
+        print(imagen?.path.substring(33));
+        print('Nombre del archivo $imagen');
       } else {
-        pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+        print('No seleccionaste ninguna foto');
       }
-      setState(() {
-        if (pickedFile != null) {
-          imagen = File(pickedFile.path);
-          rutaImg = imagen?.path.substring(33);
-          print(imagen?.path.substring(33));
-          print('Nombre del archivo $imagen');
-        } else {
-          print('No seleccionaste ninguna foto');
-        }
-      });
-      Navigator.of(context).pop();
+    });
+    Navigator.of(context).pop();
   }
 
   bool isValidForm() {
@@ -521,21 +522,26 @@ class _FormPageState extends State<FormPage> {
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
                                   child: TextButton(
-                                          onPressed: () {
-                                            opciones(context);
-                                          },
-                                          child: const Text('Cargar archivo',
-                                              style: TextStyle(
-                                                  fontSize: 20.0,
-                                                  color: Colors.black))),
+                                      onPressed: () {
+                                        opciones(context);
+                                      },
+                                      child: const Text('Cargar archivo',
+                                          style: TextStyle(
+                                              fontSize: 20.0,
+                                              color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
-                                Text(
-                                    imagen == null
-                                        ? 'Seleccione un archivo'
-                                        : 'Imagen seleccionada',
-                                    style: const TextStyle(
-                                        fontSize: 23.0, color: Colors.black54))
+                                imagen == null
+                                    ? const Text('Seleccione un archivo',
+                                        style: TextStyle(
+                                            fontSize: 23.0,
+                                            color: Colors.black54))
+                                    : const Text('Imagen seleccionada',
+                                    style: TextStyle(
+                                      fontSize: 23.0,
+                                      color: Colors.black
+                                    ),
+                                      )
                               ],
                             ),
                           ),
@@ -609,15 +615,15 @@ class _FormPageState extends State<FormPage> {
                           width: double.maxFinite,
                           decoration: BoxDecoration(
                               borderRadius:
-                              const BorderRadius.all(Radius.circular(5.0)),
+                                  const BorderRadius.all(Radius.circular(5.0)),
                               border:
-                              Border.all(color: Colors.black45, width: 1)),
+                                  Border.all(color: Colors.black45, width: 1)),
                           child: Container(
                             height: 50.0,
                             margin: const EdgeInsets.only(right: 20.0),
                             decoration: const BoxDecoration(
                               borderRadius:
-                              BorderRadius.all(Radius.circular(50.0)),
+                                  BorderRadius.all(Radius.circular(50.0)),
                             ),
                             alignment: Alignment.center,
                             child: Row(
@@ -629,13 +635,13 @@ class _FormPageState extends State<FormPage> {
                                   child: isLoading
                                       ? const CircularProgressIndicator()
                                       : TextButton(
-                                      onPressed: () {
-                                        opciones(context);
-                                      },
-                                      child: const Text('Cargar archivo',
-                                          style: TextStyle(
-                                              fontSize: 20.0,
-                                              color: Colors.black))),
+                                          onPressed: () {
+                                            opciones(context);
+                                          },
+                                          child: const Text('Cargar archivo',
+                                              style: TextStyle(
+                                                  fontSize: 20.0,
+                                                  color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
                                 Text(
@@ -663,15 +669,15 @@ class _FormPageState extends State<FormPage> {
                           width: double.maxFinite,
                           decoration: BoxDecoration(
                               borderRadius:
-                              const BorderRadius.all(Radius.circular(5.0)),
+                                  const BorderRadius.all(Radius.circular(5.0)),
                               border:
-                              Border.all(color: Colors.black45, width: 1)),
+                                  Border.all(color: Colors.black45, width: 1)),
                           child: Container(
                             height: 50.0,
                             margin: const EdgeInsets.only(right: 20.0),
                             decoration: const BoxDecoration(
                               borderRadius:
-                              BorderRadius.all(Radius.circular(50.0)),
+                                  BorderRadius.all(Radius.circular(50.0)),
                             ),
                             alignment: Alignment.center,
                             child: Row(
@@ -683,13 +689,13 @@ class _FormPageState extends State<FormPage> {
                                   child: isLoading
                                       ? const CircularProgressIndicator()
                                       : TextButton(
-                                      onPressed: () {
-                                        opciones(context);
-                                      },
-                                      child: const Text('Cargar archivo',
-                                          style: TextStyle(
-                                              fontSize: 20.0,
-                                              color: Colors.black))),
+                                          onPressed: () {
+                                            opciones(context);
+                                          },
+                                          child: const Text('Cargar archivo',
+                                              style: TextStyle(
+                                                  fontSize: 20.0,
+                                                  color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
                                 Text(
@@ -717,15 +723,15 @@ class _FormPageState extends State<FormPage> {
                           width: double.maxFinite,
                           decoration: BoxDecoration(
                               borderRadius:
-                              const BorderRadius.all(Radius.circular(5.0)),
+                                  const BorderRadius.all(Radius.circular(5.0)),
                               border:
-                              Border.all(color: Colors.black45, width: 1)),
+                                  Border.all(color: Colors.black45, width: 1)),
                           child: Container(
                             height: 50.0,
                             margin: const EdgeInsets.only(right: 20.0),
                             decoration: const BoxDecoration(
                               borderRadius:
-                              BorderRadius.all(Radius.circular(50.0)),
+                                  BorderRadius.all(Radius.circular(50.0)),
                             ),
                             alignment: Alignment.center,
                             child: Row(
@@ -737,13 +743,13 @@ class _FormPageState extends State<FormPage> {
                                   child: isLoading
                                       ? const CircularProgressIndicator()
                                       : TextButton(
-                                      onPressed: () {
-                                        opciones(context);
-                                      },
-                                      child: const Text('Cargar archivo',
-                                          style: TextStyle(
-                                              fontSize: 20.0,
-                                              color: Colors.black))),
+                                          onPressed: () {
+                                            opciones(context);
+                                          },
+                                          child: const Text('Cargar archivo',
+                                              style: TextStyle(
+                                                  fontSize: 20.0,
+                                                  color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
                                 Text(
