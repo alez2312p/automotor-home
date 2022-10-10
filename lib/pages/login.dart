@@ -9,7 +9,6 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-
   String user = "";
   String pass = "";
 
@@ -17,12 +16,14 @@ class _LoginState extends State<Login> {
   bool contrasenaVisible = true;
 
   final myController = TextEditingController();
+
   void dispose() {
     myController.dispose();
     super.dispose();
   }
 
   final _formKey = GlobalKey<FormState>();
+
   bool isValidForm() {
     print(_formKey.currentState?.validate());
     return _formKey.currentState?.validate() ?? false;
@@ -30,100 +31,119 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Iniciar sesión'),
-        ),
-        body: ListView(
-          padding: const EdgeInsets.all(8.0),
+    return Scaffold(
+      backgroundColor: Colors.blue,
+      body: Container(
+        margin: EdgeInsets.symmetric(vertical: 100, horizontal: 20),
+        width: 500,
+        height: 525.1,
+        decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: Colors.black, width: 2),
+            borderRadius: BorderRadius.all(Radius.circular(15))),
+        child: Column(
           children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
+            Row(
               children: [
-                const Text(
-                'Iniciar sesión',
-                style: TextStyle(
+                Image.asset('assets/escudo.png', width: 100),
+                SizedBox(width: 50.0),
+                Image.asset('assets/logo1.png', width: 250),
+              ],
+            ),
+            const Text(
+              'Control Patios',
+              style: TextStyle(
                   fontSize: 32.0,
-                  color: Colors.orange,
-                  fontWeight: FontWeight.bold
-                ),
-              ),
-                Padding(
-                padding: const EdgeInsets.symmetric(vertical: 30.0),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Form(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 30.0),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Form(
                     key: _formKey,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
-                      child: Column(
-                        children: [
-                          TextFormField(
-                            autocorrect: false,
-                            keyboardType: TextInputType.text,
-                            decoration: const InputDecoration(
-                              labelText: 'Usuario',
-                              hintText: 'Ingrese su usuario',
-                              prefixIcon: Icon(Icons.account_circle_rounded),
-                              border: OutlineInputBorder(),
-                            ),
-                            onChanged: (value) => user = value,
-                            validator: (value){
-                              String usuario = 'admin';
-                              return value != usuario ? 'Usuario incorrecto' : null;
-                            },
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          autocorrect: false,
+                          keyboardType: TextInputType.text,
+                          decoration: const InputDecoration(
+                            labelText: 'Ingrese número de documento',
+                            hintText: 'Número de documento',
+                            prefixIcon: Icon(Icons.account_circle_rounded),
+                            border: OutlineInputBorder(),
                           ),
-                          const SizedBox(height: 30.0),
-                          TextFormField(
-                            keyboardType: TextInputType.visiblePassword,
-                            obscureText: contrasenaVisible,
-                            decoration: InputDecoration(
-                              labelText: 'Contraseña',
-                              hintText: 'Ingrese su contraseña',
+                          onChanged: (value) => user = value,
+                          validator: (value) {
+                            String usuario = 'admin';
+                            return value != usuario
+                                ? 'Número de documento incorrecto'
+                                : null;
+                          },
+                        ),
+                        const SizedBox(height: 30.0),
+                        TextFormField(
+                          keyboardType: TextInputType.visiblePassword,
+                          obscureText: contrasenaVisible,
+                          decoration: InputDecoration(
+                              labelText: 'Ingrese la contraseña',
+                              hintText: 'Contraseña',
                               prefixIcon: const Icon(Icons.password_rounded),
                               border: const OutlineInputBorder(),
                               suffixIcon: IconButton(
-                                icon: Icon(
-                                  contrasenaVisible ? Icons.visibility : Icons.visibility_off
-                                ),
+                                icon: Icon(contrasenaVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off),
                                 onPressed: () {
                                   setState(() {
                                     contrasenaVisible = !contrasenaVisible;
                                   });
                                 },
-                              )
-                            ),
-                            onChanged: (value) => pass = value,
-                            validator: (value){
-                              String clave = '1234';
-                              return value != clave ? 'Contraseña incorrecto' : null;
-                            },
-                          ),
-                          const SizedBox(height: 30.0),
-                          MaterialButton(
+                              )),
+                          onChanged: (value) => pass = value,
+                          validator: (value) {
+                            String clave = '1234';
+                            return value != clave
+                                ? 'Contraseña incorrecto'
+                                : null;
+                          },
+                        ),
+                        const SizedBox(height: 30.0),
+                        MaterialButton(
                             minWidth: double.infinity,
-                            onPressed: (){
-                              if(!isValidForm()) return;
+                            onPressed: () {
+                              if (!isValidForm()) return;
                               Navigator.pushReplacementNamed(context, 'form');
                             },
-                            color: Colors.orange,
+                            color: Colors.blue,
                             textColor: Colors.white,
-                            child: const Text('Iniciar sesión',
-                            style: TextStyle(
-                              fontSize: 20.0,
-                            ),),
-                          )
-                        ],
-                      )
-                  ),
-                ),
-              )
-              ],
-            ),
-          ]
+                            child: Container(
+                              margin: EdgeInsets.all(15),
+                              child: Text(
+                                'Ingresar',
+                                style: TextStyle(
+                                  fontSize: 20.0,
+                                ),
+                              ),
+                            ),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10))),
+                        const SizedBox(height: 6.8),
+                        TextButton(
+                            onPressed: () {},
+                            child: Text(
+                              'Recuperar contraseña',
+                              style: TextStyle(fontSize: 20),
+                            ))
+                      ],
+                    )),
+              ),
+            )
+          ],
         ),
-      )
+      ),
     );
   }
 }

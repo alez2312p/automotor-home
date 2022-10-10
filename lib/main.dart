@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Automotor',
-      initialRoute: 'form',
+      initialRoute: 'login',
       routes: {
         'login' : (_) => Login(),
         'form' : (_) => FormPage(),
