@@ -1,4 +1,5 @@
 import 'package:a/pages/login.dart';
+import 'package:a/pages/page2.dart';
 import 'package:flutter/material.dart';
 
 import 'package:a/pages/form.dart';
@@ -10,9 +11,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'Automotor',
-      home: Login(),
+      initialRoute: 'login',
+      routes: {
+        'login' : (_) => Login(),
+        'form' : (_) => FormPage(),
+        'page2' : (_) => Page2(),
+      },
     );
   }
 }
