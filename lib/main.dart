@@ -13,11 +13,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Automotor',
-      initialRoute: 'login',
+      initialRoute: 'form',
       routes: {
-        'login' : (_) => Login(),
-        'form' : (_) => FormPage(),
-        'page2' : (_) => Page2(),
+        'login' : (_) => const Login(),
+        'form' : (_) => const FormPage(),
+        'page2' : (_) => const Page2(),
       },
     );
   }

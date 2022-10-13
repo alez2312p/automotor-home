@@ -1,4 +1,3 @@
-import 'package:a/pages/form.dart';
 import 'package:flutter/material.dart';
 
 class Login extends StatefulWidget {
@@ -46,7 +45,7 @@ class _LoginState extends State<Login> {
             Row(
               children: [
                 Image.asset('assets/escudo.png', width: 100),
-                SizedBox(width: 50.0),
+                const SizedBox(width: 50.0),
                 Image.asset('assets/logo1.png', width: 250),
               ],
             ),
@@ -119,6 +118,7 @@ class _LoginState extends State<Login> {
                             },
                             color: Colors.blue,
                             textColor: Colors.white,
+                            //Remove?
                             child: Container(
                               margin: EdgeInsets.all(15),
                               child: Text(
