@@ -17,35 +17,39 @@ class _FormPageState extends State<FormPage> {
   String? tipoAutomotor;
   String? tipoServicio;
   String? ingresoPatio;
-  String? rutaImg;
+  bool inventario = false;
+  bool imagen1 = false;
+  bool imagen2 = false;
+  bool imagen3 = false;
+  bool imagen4 = false;
 
   bool isLoading = false;
   bool nameFile = false;
 
-  ImagePicker? pickerImage;
   File? imagen;
-
+  
   final _formKey = GlobalKey<FormState>();
+  final _myController = TextEditingController();
   final _picker = ImagePicker();
-  final myController = TextEditingController();
 
-  var pickedFile;
+  var _pickedFile;
 
   @override
   void initState() {
     super.initState();
-
-    myController.addListener(_printLatestValue);
+    _myController.addListener(_printLatestValue);
   }
+
 
   @override
   void dispose() {
-    myController.dispose();
+    _myController.dispose();
     super.dispose();
   }
 
+
   _printLatestValue() {
-    print("Second text field: ${myController.text}");
+    print("Second text field: ${_myController.text}");
   }
 
   opciones(context) {
@@ -133,9 +137,10 @@ class _FormPageState extends State<FormPage> {
               child: const Text("Aceptar"),
               onPressed: () {
                 if (!isValidForm()) return;
-                myController.clear();
                 _formKey.currentState?.reset();
+                _myController.clear();
                 Navigator.of(context).pop();
+                _alertSave(context);
                 print('Enivado');
               }),
           TextButton(
@@ -148,16 +153,37 @@ class _FormPageState extends State<FormPage> {
     },
   );
 }
-  
+
+_alertSave(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return CupertinoAlertDialog(
+        title: const Text('Alerta'),
+        content:
+            const Text("¡¡Guardado con exito!!"),
+        actions: <Widget>[
+          TextButton(
+              child: const Text("Aceptar"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                print('Guardado');
+              }),
+        ],
+      );
+    },
+  );
+}
+
   Future selectImage(op) async {
     if (op == 1) {
-      pickedFile = await _picker.pickImage(source: ImageSource.camera);
+      _pickedFile = await _picker.pickImage(source: ImageSource.camera);
     } else {
-      pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      _pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     }
     setState(() {
-      if (pickedFile != null) {
-        imagen = File(pickedFile.path);
+      if (_pickedFile != null) {
+        imagen = File(_pickedFile.path);
       } else {
         print('No seleccionaste ninguna foto');
       }
@@ -289,7 +315,7 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
-                                controller: myController,
+                                controller: _myController,
                                 style: const TextStyle(fontSize: 22.0),
                                 decoration: const InputDecoration(
                                     hintText: 'Ingrese una placa automotora',
@@ -332,7 +358,7 @@ class _FormPageState extends State<FormPage> {
                                     return 'Por favor ingrese nuevamente la placa automotora';
                                   }
 
-                                  if (value != myController.text) {
+                                  if (value != _myController.text) {
                                     return 'La placa automotora no coincide';
                                   }
                                   return null;
@@ -582,7 +608,7 @@ class _FormPageState extends State<FormPage> {
                                               color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
-                                imagen == null
+                                inventario == false
                                     ? const Text('Seleccione un archivo',
                                         style: TextStyle(
                                             fontSize: 23.0,
