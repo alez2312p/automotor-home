@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:image_picker/image_picker.dart';
@@ -119,6 +120,35 @@ class _FormPageState extends State<FormPage> {
         });
   }
 
+  _alertConfirm(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return CupertinoAlertDialog(
+        title: const Text('Alerta'),
+        content:
+            const Text("¿Seguro que desea guardar y enviar la información?"),
+        actions: <Widget>[
+          TextButton(
+              child: const Text("Aceptar"),
+              onPressed: () {
+                if (!isValidForm()) return;
+                myController.clear();
+                _formKey.currentState?.reset();
+                Navigator.of(context).pop();
+                print('Enivado');
+              }),
+          TextButton(
+              child: const Text("Cancelar"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              }),
+        ],
+      );
+    },
+  );
+}
+  
   Future selectImage(op) async {
     if (op == 1) {
       pickedFile = await _picker.pickImage(source: ImageSource.camera);
@@ -506,7 +536,7 @@ class _FormPageState extends State<FormPage> {
                                     hintText: 'Ingrese el color del automotor'),
                                 validator: (value) {
                                   if (value!.isEmpty) {
-                                    return 'Por favor ingrese una placa automotora';
+                                    return 'Por favor ingrese el color del automotor';
                                   }
                                   return null;
                                 }))
@@ -878,7 +908,7 @@ class _FormPageState extends State<FormPage> {
                       minWidth: double.infinity,
                       onPressed: () {
                         if (!isValidForm()) return;
-                        myController.clear();
+                        _alertConfirm(context);
                       },
                       color: Colors.green,
                       textColor: Colors.white,
@@ -888,7 +918,7 @@ class _FormPageState extends State<FormPage> {
                           fontSize: 20.0,
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
