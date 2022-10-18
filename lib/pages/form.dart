@@ -52,7 +52,7 @@ class _FormPageState extends State<FormPage> {
     print("Second text field: ${_myController.text}");
   }
 
-  opciones(context) {
+  opciones(op) {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -122,6 +122,23 @@ class _FormPageState extends State<FormPage> {
             ),
           );
         });
+  
+    if(op == 1) {
+      inventario = true;
+    }
+    if(op == 2) {
+      imagen1 = true;
+    }
+    if(op == 3) {
+      imagen2 = true;
+    }
+    if(op == 4) {
+      imagen3 = true;
+    }
+    if(op == 5) {
+      imagen4 = true;
+    }
+
   }
 
   _alertConfirm(BuildContext context) {
@@ -223,7 +240,13 @@ _alertSave(BuildContext context) {
                 'Nuevo Registro',
                 style: TextStyle(fontSize: 20.0),
               ),
-            )),
+            ), 
+            onTap: () {
+              if (isValidForm()) return;
+                _formKey.currentState?.reset();
+                _myController.clear();
+            },
+            ),
           ],
         ),
         body: ListView(
@@ -600,7 +623,7 @@ _alertSave(BuildContext context) {
                                       color: Colors.grey),
                                   child: TextButton(
                                       onPressed: () {
-                                        opciones(context);
+                                        opciones(1);
                                       },
                                       child: const Text('Cargar archivo',
                                           style: TextStyle(
@@ -655,11 +678,9 @@ _alertSave(BuildContext context) {
                                   decoration: BoxDecoration(
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
-                                  child: isLoading
-                                      ? const CircularProgressIndicator()
-                                      : TextButton(
+                                  child: TextButton(
                                           onPressed: () {
-                                            opciones(context);
+                                            opciones(2);
                                           },
                                           child: const Text('Cargar archivo',
                                               style: TextStyle(
@@ -667,7 +688,7 @@ _alertSave(BuildContext context) {
                                                   color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
-                                imagen == null
+                                imagen1 == false
                                     ? const Text('Seleccione un archivo',
                                         style: TextStyle(
                                             fontSize: 23.0,
@@ -714,11 +735,9 @@ _alertSave(BuildContext context) {
                                   decoration: BoxDecoration(
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
-                                  child: isLoading
-                                      ? const CircularProgressIndicator()
-                                      : TextButton(
+                                  child: TextButton(
                                           onPressed: () {
-                                            opciones(context);
+                                            opciones(3);
                                           },
                                           child: const Text('Cargar archivo',
                                               style: TextStyle(
@@ -726,7 +745,7 @@ _alertSave(BuildContext context) {
                                                   color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
-                                imagen == null
+                                imagen2 == false
                                     ? const Text('Seleccione un archivo',
                                         style: TextStyle(
                                             fontSize: 23.0,
@@ -773,11 +792,9 @@ _alertSave(BuildContext context) {
                                   decoration: BoxDecoration(
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
-                                  child: isLoading
-                                      ? const CircularProgressIndicator()
-                                      : TextButton(
+                                  child: TextButton(
                                           onPressed: () {
-                                            opciones(context);
+                                            opciones(4);
                                           },
                                           child: const Text('Cargar archivo',
                                               style: TextStyle(
@@ -785,7 +802,7 @@ _alertSave(BuildContext context) {
                                                   color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
-                                imagen == null
+                                imagen3 == false
                                     ? const Text('Seleccione un archivo',
                                         style: TextStyle(
                                             fontSize: 23.0,
@@ -832,11 +849,9 @@ _alertSave(BuildContext context) {
                                   decoration: BoxDecoration(
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
-                                  child: isLoading
-                                      ? const CircularProgressIndicator()
-                                      : TextButton(
+                                  child: TextButton(
                                           onPressed: () {
-                                            opciones(context);
+                                            opciones(5);
                                           },
                                           child: const Text('Cargar archivo',
                                               style: TextStyle(
@@ -844,7 +859,7 @@ _alertSave(BuildContext context) {
                                                   color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
-                                imagen == null
+                                imagen4 == false
                                     ? const Text('Seleccione un archivo',
                                         style: TextStyle(
                                             fontSize: 23.0,
