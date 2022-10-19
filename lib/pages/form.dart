@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'package:a/pages/mysql.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:image_picker/image_picker.dart';
+import 'package:mysql1/mysql1.dart';
 
 class FormPage extends StatefulWidget {
   const FormPage({super.key});
@@ -27,12 +29,29 @@ class _FormPageState extends State<FormPage> {
   bool nameFile = false;
 
   File? imagen;
-  
+
   final _formKey = GlobalKey<FormState>();
   final _myController = TextEditingController();
   final _picker = ImagePicker();
 
   var _pickedFile;
+
+  var db = Mysql();
+  var lugarIngresoMysql = '';
+
+  void _getCustomer() {
+    db.getConnection().then((conn) {
+      String sql =
+          'select * from automotor.automotor where LugarIngreso = "La Estación - Kilometro 25";';
+      conn.query(sql).then((results) {
+        for (var row in results) {
+          setState(() {
+            lugarIngresoMysql = row[0];
+          });
+        }
+      });
+    });
+  }
 
   @override
   void initState() {
@@ -40,13 +59,11 @@ class _FormPageState extends State<FormPage> {
     _myController.addListener(_printLatestValue);
   }
 
-
   @override
   void dispose() {
     _myController.dispose();
     super.dispose();
   }
-
 
   _printLatestValue() {
     print("Second text field: ${_myController.text}");
@@ -142,55 +159,56 @@ class _FormPageState extends State<FormPage> {
   }
 
   _alertConfirm(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return CupertinoAlertDialog(
-        title: const Text('Alerta'),
-        content:
-            const Text("¿Seguro que desea guardar y enviar la información?"),
-        actions: <Widget>[
-          TextButton(
-              child: const Text("Aceptar"),
-              onPressed: () {
-                if (!isValidForm()) return;
-                _formKey.currentState?.reset();
-                _myController.clear();
-                Navigator.of(context).pop();
-                _alertSave(context);
-                print('Enivado');
-              }),
-          TextButton(
-              child: const Text("Cancelar"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              }),
-        ],
-      );
-    },
-  );
-}
+    showDialog(
+      context: context,
+      builder: (context) {
+        return CupertinoAlertDialog(
+          title: const Text('Alerta'),
+          content:
+              const Text("¿Seguro que desea guardar y enviar la información?"),
+          actions: <Widget>[
+            TextButton(
+                child: const Text("Aceptar"),
+                onPressed: () {
+                  if (!isValidForm()) return;
+                  _formKey.currentState?.reset();
+                  _myController.clear();
+                  Navigator.of(context).pop();
+                  _alertSave(context);
+                  print('Enivado');
+                }),
+            TextButton(
+                child: const Text("Cancelar"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                }),
+          ],
+        );
+      },
+    );
+  }
 
-_alertSave(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return CupertinoAlertDialog(
-        title: const Text('Alerta'),
-        content:
-            const Text("¡¡Guardado con exito!!"),
-        actions: <Widget>[
-          TextButton(
-              child: const Text("Aceptar"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                print('Guardado');
-              }),
-        ],
-      );
-    },
-  );
-}
+  _alertSave(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return CupertinoAlertDialog(
+          title: const Text('Alerta'),
+          content: const Text("¡¡Guardado con exito!!"),
+          actions: <Widget>[
+            TextButton(
+                child: const Text("Aceptar"),
+                onPressed: () {
+                  _getCustomer();
+                  Navigator.of(context).pop();
+                  print('Guardado');
+                  print('lugarIngresoMysql: $lugarIngresoMysql');
+                }),
+          ],
+        );
+      },
+    );
+  }
 
   Future selectImage(op) async {
     if (op == 1) {
