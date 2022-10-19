@@ -42,7 +42,7 @@ class _FormPageState extends State<FormPage> {
   void _getCustomer() {
     db.getConnection().then((conn) {
       String sql =
-          'select * from automotor.automotor where LugarIngreso = "La Estación - Kilometro 25";';
+          'select lugarIngreso from prueba1.automotor where id = 1;';
       conn.query(sql).then((results) {
         for (var row in results) {
           setState(() {
