@@ -31,23 +31,25 @@ class _FormPageState extends State<FormPage> {
   File? imagen;
 
   final _formKey = GlobalKey<FormState>();
-  final _myController = TextEditingController();
+  final _placaAutomotora = TextEditingController();
+  final _nPlacaAutomotora = TextEditingController();
+  final _marca = TextEditingController();
+  final _color = TextEditingController();
+  final _observaciones = TextEditingController();
   final _picker = ImagePicker();
 
   var _pickedFile;
 
   var db = Mysql();
   var lugarIngresoMysql = '';
-
+  var userId = 1;
   void _getCustomer() {
     db.getConnection().then((conn) {
       String sql =
-          'select lugarIngreso from prueba1.automotor where id = 1;';
+          'SELECT marca FROM automotor.automotor WHERE id = 1;' [userId];
       conn.query(sql).then((results) {
         for (var row in results) {
-          setState(() {
-            lugarIngresoMysql = row[0];
-          });
+          print('Lugar ingreso: ${row[1]}');
         }
       });
     });
@@ -56,17 +58,26 @@ class _FormPageState extends State<FormPage> {
   @override
   void initState() {
     super.initState();
-    _myController.addListener(_printLatestValue);
   }
 
   @override
   void dispose() {
-    _myController.dispose();
+    _placaAutomotora.dispose();
     super.dispose();
   }
 
   _printLatestValue() {
-    print("Second text field: ${_myController.text}");
+    print("----------------------------------------------");
+    print("Lugar de ingreso: ${lugarIngreso}");
+    print("Placa automotora: ${_placaAutomotora.text}");
+    print("Nuevamente placa automotora: ${_nPlacaAutomotora.text}");
+    print("Ingreso por accidente: ${ingresoAccidente}");
+    print("Tipo de servicio: ${tipoServicio}");
+    print("Tipo de automotor: ${tipoAutomotor}");
+    print("Marca: ${_marca.text}");
+    print("Color: ${_color.text}");
+    print("Observaciones: ${_observaciones.text}");
+    print("Ingreso propio: ${ingresoPatio}");
   }
 
   opciones(op) {
@@ -171,11 +182,17 @@ class _FormPageState extends State<FormPage> {
                 child: const Text("Aceptar"),
                 onPressed: () {
                   if (!isValidForm()) return;
+                  _printLatestValue();
                   _formKey.currentState?.reset();
-                  _myController.clear();
+                  _placaAutomotora.clear();
+                  _nPlacaAutomotora.clear();
+                  _marca.clear();
+                  _color.clear();
+                  _observaciones.clear();
                   Navigator.of(context).pop();
                   _alertSave(context);
-                  print('Enivado');
+                  print('lugarIngresoMysql: $lugarIngresoMysql');
+                  print('Enviado');
                 }),
             TextButton(
                 child: const Text("Cancelar"),
@@ -199,10 +216,8 @@ class _FormPageState extends State<FormPage> {
             TextButton(
                 child: const Text("Aceptar"),
                 onPressed: () {
-                  _getCustomer();
                   Navigator.of(context).pop();
                   print('Guardado');
-                  print('lugarIngresoMysql: $lugarIngresoMysql');
                 }),
           ],
         );
@@ -220,7 +235,7 @@ class _FormPageState extends State<FormPage> {
       if (_pickedFile != null) {
         imagen = File(_pickedFile.path);
       } else {
-        print('No seleccionaste ninguna foto');
+        print('No se seleccionó ninguna foto');
       }
     });
     Navigator.of(context).pop();
@@ -261,8 +276,12 @@ class _FormPageState extends State<FormPage> {
             ), 
             onTap: () {
               if (isValidForm()) return;
-                _formKey.currentState?.reset();
-                _myController.clear();
+                  _formKey.currentState?.reset();
+                  _placaAutomotora.clear();
+                  _nPlacaAutomotora.clear();
+                  _marca.clear();
+                  _color.clear();
+                  _observaciones.clear();
             },
             ),
           ],
@@ -356,7 +375,7 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
-                                controller: _myController,
+                                controller: _placaAutomotora,
                                 style: const TextStyle(fontSize: 22.0),
                                 decoration: const InputDecoration(
                                     hintText: 'Ingrese una placa automotora',
@@ -388,6 +407,7 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
+                                controller: _nPlacaAutomotora,
                                 style: const TextStyle(fontSize: 22.0),
                                 decoration: const InputDecoration(
                                     hintText:
@@ -399,7 +419,7 @@ class _FormPageState extends State<FormPage> {
                                     return 'Por favor ingrese nuevamente la placa automotora';
                                   }
 
-                                  if (value != _myController.text) {
+                                  if (value != _placaAutomotora.text) {
                                     return 'La placa automotora no coincide';
                                   }
                                   return null;
@@ -567,13 +587,14 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
+                                controller: _marca,
                                 style: const TextStyle(fontSize: 22.0),
                                 decoration: const InputDecoration(
                                     border: InputBorder.none,
                                     hintText: 'Ingrese la marca del automotor'),
                                 validator: (value) {
                                   if (value!.isEmpty) {
-                                    return 'Por favor ingrese una placa automotora';
+                                    return 'Por favor ingrese una marca automotora';
                                   }
                                   return null;
                                 }))
@@ -597,6 +618,7 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
+                                controller: _color,
                                 style: const TextStyle(fontSize: 22.0),
                                 decoration: const InputDecoration(
                                     border: InputBorder.none,
@@ -911,7 +933,8 @@ class _FormPageState extends State<FormPage> {
                                     Radius.circular(5.0)),
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
-                            child: const TextField(
+                            child: TextFormField(
+                                controller: _observaciones,
                               maxLines: 4,
                               style: TextStyle(fontSize: 22.0),
                               decoration: InputDecoration(
