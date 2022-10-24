@@ -37,6 +37,8 @@ dependencies:
   path:
   image_picker:
   mysql1: ^0.20.0
+  sqflite: ^2.1.0+1
+  http: ^0.13.5
 
 dev_dependencies:
   flutter_test:
