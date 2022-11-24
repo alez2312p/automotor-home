@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:core';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -8,38 +12,55 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  String user = "";
-  String pass = "";
+  String username = "";
+  
+  TextEditingController user1 = TextEditingController();
+  TextEditingController pass1 = TextEditingController();
+
+  
+String msg='';
+
+Future<List> _login() async {
+  final response = await http.post(
+        Uri.parse("http://192.168.1.8/prueba1/login.php"),
+        body: {"username": user1.text, "password": pass1.text});
+
+  var datauser = json.decode(response.body); 
+
+  if(datauser.length==0){
+    setState(() {
+          msg="Login Fail";
+        });
+  }else{
+    if(datauser[0]['level']=='0'){
+       Navigator.pushReplacementNamed(context, 'form');
+    }
+    setState(() {
+          username= datauser[0]['username'];
+        });
+
+  }
+
+  return datauser;
+}
 
   bool isLoading = false;
   bool contrasenaVisible = true;
 
-  final myController = TextEditingController();
-
-  void dispose() {
-    myController.dispose();
-    super.dispose();
-  }
-
   final _formKey = GlobalKey<FormState>();
-
-  bool isValidForm() {
-    print(_formKey.currentState?.validate());
-    return _formKey.currentState?.validate() ?? false;
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blue,
       body: Container(
-        margin: EdgeInsets.symmetric(vertical: 100, horizontal: 20),
+        margin: const EdgeInsets.symmetric(vertical: 100, horizontal: 20),
         width: 500,
         height: 525.1,
         decoration: BoxDecoration(
             color: Colors.white,
             border: Border.all(color: Colors.black, width: 2),
-            borderRadius: BorderRadius.all(Radius.circular(15))),
+            borderRadius: const BorderRadius.all(Radius.circular(15))),
         child: Column(
           children: [
             Row(
@@ -66,6 +87,7 @@ class _LoginState extends State<Login> {
                     child: Column(
                       children: [
                         TextFormField(
+                          controller: user1,
                           autocorrect: false,
                           keyboardType: TextInputType.text,
                           decoration: const InputDecoration(
@@ -74,16 +96,10 @@ class _LoginState extends State<Login> {
                             prefixIcon: Icon(Icons.account_circle_rounded),
                             border: OutlineInputBorder(),
                           ),
-                          onChanged: (value) => user = value,
-                          validator: (value) {
-                            String usuario = 'admin';
-                            return value != usuario
-                                ? 'Número de documento incorrecto'
-                                : null;
-                          },
                         ),
                         const SizedBox(height: 30.0),
                         TextFormField(
+                          controller: pass1,
                           keyboardType: TextInputType.visiblePassword,
                           obscureText: contrasenaVisible,
                           decoration: InputDecoration(
@@ -101,39 +117,31 @@ class _LoginState extends State<Login> {
                                   });
                                 },
                               )),
-                          onChanged: (value) => pass = value,
-                          validator: (value) {
-                            String clave = '1234';
-                            return value != clave
-                                ? 'Contraseña incorrecto'
-                                : null;
-                          },
                         ),
                         const SizedBox(height: 30.0),
                         MaterialButton(
                             minWidth: double.infinity,
                             onPressed: () {
-                              if (!isValidForm()) return;
-                              Navigator.pushReplacementNamed(context, 'form');
+                              _login();
                             },
                             color: Colors.blue,
                             textColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
                             //Remove?
                             child: Container(
-                              margin: EdgeInsets.all(15),
-                              child: Text(
+                              margin: const EdgeInsets.all(15),
+                              child: const Text(
                                 'Ingresar',
                                 style: TextStyle(
                                   fontSize: 20.0,
                                 ),
                               ),
-                            ),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10))),
+                            )),
                         const SizedBox(height: 6.8),
                         TextButton(
                             onPressed: () {},
-                            child: Text(
+                            child: const Text(
                               'Recuperar contraseña',
                               style: TextStyle(fontSize: 20),
                             ))

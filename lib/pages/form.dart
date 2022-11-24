@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'package:a/pages/mysql.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:image_picker/image_picker.dart';
+import 'package:mysql1/mysql1.dart';
 
 class FormPage extends StatefulWidget {
   const FormPage({super.key});
@@ -12,25 +14,73 @@ class FormPage extends StatefulWidget {
 }
 
 class _FormPageState extends State<FormPage> {
-  String? texto = 'Seleccione una opción';
-  String? texto1 = 'Seleccione una opción';
-  String? texto2 = 'Seleccione una opción';
-  String? texto3 = 'Seleccione una opción';
-  String? texto4 = 'Seleccione una opción';
-  String? rutaImg;
+  String? lugarIngreso;
+  String? ingresoAccidente;
+  String? tipoAutomotor;
+  String? tipoServicio;
+  String? ingresoPatio;
+  bool inventario = false;
+  bool imagen1 = false;
+  bool imagen2 = false;
+  bool imagen3 = false;
+  bool imagen4 = false;
 
   bool isLoading = false;
   bool nameFile = false;
 
-  ImagePicker? pickerImage;
   File? imagen;
 
   final _formKey = GlobalKey<FormState>();
+  final _placaAutomotora = TextEditingController();
+  final _nPlacaAutomotora = TextEditingController();
+  final _marca = TextEditingController();
+  final _color = TextEditingController();
+  final _observaciones = TextEditingController();
   final _picker = ImagePicker();
 
-  var pickedFile;
+  var _pickedFile;
 
-  opciones(context) {
+  var db = Mysql();
+  var lugarIngresoMysql = '';
+  var userId = 1;
+  void _getCustomer() {
+    db.getConnection().then((conn) {
+      String sql =
+          'SELECT marca FROM automotor.automotor WHERE id = 1;' [userId];
+      conn.query(sql).then((results) {
+        for (var row in results) {
+          print('Lugar ingreso: ${row[1]}');
+        }
+      });
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _placaAutomotora.dispose();
+    super.dispose();
+  }
+
+  _printLatestValue() {
+    print("----------------------------------------------");
+    print("Lugar de ingreso: ${lugarIngreso}");
+    print("Placa automotora: ${_placaAutomotora.text}");
+    print("Nuevamente placa automotora: ${_nPlacaAutomotora.text}");
+    print("Ingreso por accidente: ${ingresoAccidente}");
+    print("Tipo de servicio: ${tipoServicio}");
+    print("Tipo de automotor: ${tipoAutomotor}");
+    print("Marca: ${_marca.text}");
+    print("Color: ${_color.text}");
+    print("Observaciones: ${_observaciones.text}");
+    print("Ingreso propio: ${ingresoPatio}");
+  }
+
+  opciones(op) {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -47,12 +97,12 @@ class _FormPageState extends State<FormPage> {
                               bottom:
                                   BorderSide(color: Colors.grey, width: 1))),
                       child: Row(
-                        children: [
-                          const Expanded(
+                        children: const [
+                          Expanded(
                             child: Text('Tomar una foto',
                                 style: TextStyle(fontSize: 16)),
                           ),
-                          const Icon(Icons.add_a_photo_rounded)
+                          Icon(Icons.add_a_photo_rounded)
                         ],
                       ),
                     ),
@@ -64,12 +114,12 @@ class _FormPageState extends State<FormPage> {
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       child: Row(
-                        children: [
-                          const Expanded(
+                        children: const [
+                          Expanded(
                             child: Text('Seleccionar una foto',
                                 style: TextStyle(fontSize: 16)),
                           ),
-                          const Icon(Icons.image)
+                          Icon(Icons.image)
                         ],
                       ),
                     ),
@@ -100,22 +150,92 @@ class _FormPageState extends State<FormPage> {
             ),
           );
         });
+  
+    if(op == 1) {
+      inventario = true;
+    }
+    if(op == 2) {
+      imagen1 = true;
+    }
+    if(op == 3) {
+      imagen2 = true;
+    }
+    if(op == 4) {
+      imagen3 = true;
+    }
+    if(op == 5) {
+      imagen4 = true;
+    }
+
+  }
+
+  _alertConfirm(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return CupertinoAlertDialog(
+          title: const Text('Alerta'),
+          content:
+              const Text("¿Seguro que desea guardar y enviar la información?"),
+          actions: <Widget>[
+            TextButton(
+                child: const Text("Aceptar"),
+                onPressed: () {
+                  if (!isValidForm()) return;
+                  _printLatestValue();
+                  _formKey.currentState?.reset();
+                  _placaAutomotora.clear();
+                  _nPlacaAutomotora.clear();
+                  _marca.clear();
+                  _color.clear();
+                  _observaciones.clear();
+                  Navigator.of(context).pop();
+                  _alertSave(context);
+                  print('lugarIngresoMysql: $lugarIngresoMysql');
+                  print('Enviado');
+                }),
+            TextButton(
+                child: const Text("Cancelar"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                }),
+          ],
+        );
+      },
+    );
+  }
+
+  _alertSave(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return CupertinoAlertDialog(
+          title: const Text('Alerta'),
+          content: const Text("¡¡Guardado con exito!!"),
+          actions: <Widget>[
+            TextButton(
+                child: const Text("Aceptar"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  print('Guardado');
+                }),
+          ],
+        );
+      },
+    );
   }
 
   Future selectImage(op) async {
     if (op == 1) {
-      pickedFile = await _picker.pickImage(source: ImageSource.camera);
+      _pickedFile = await _picker.pickImage(source: ImageSource.camera);
     } else {
-      pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      _pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     }
     setState(() {
-      if (pickedFile != null) {
-        imagen = File(pickedFile.path);
-        rutaImg = imagen?.path.substring(33);
-        print(imagen?.path.substring(33));
-        print('Nombre del archivo $imagen');
+      if (_pickedFile != null) {
+        imagen = File(_pickedFile.path);
       } else {
-        print('No seleccionaste ninguna foto');
+        print('No se seleccionó ninguna foto');
       }
     });
     Navigator.of(context).pop();
@@ -153,7 +273,17 @@ class _FormPageState extends State<FormPage> {
                 'Nuevo Registro',
                 style: TextStyle(fontSize: 20.0),
               ),
-            )),
+            ), 
+            onTap: () {
+              if (isValidForm()) return;
+                  _formKey.currentState?.reset();
+                  _placaAutomotora.clear();
+                  _nPlacaAutomotora.clear();
+                  _marca.clear();
+                  _color.clear();
+                  _observaciones.clear();
+            },
+            ),
           ],
         ),
         body: ListView(
@@ -204,7 +334,7 @@ class _FormPageState extends State<FormPage> {
                                   errorBorder: InputBorder.none),
                               style: const TextStyle(
                                   fontSize: 22.0, color: Colors.black),
-                              hint: Text(texto!),
+                              hint: const Text('Seleccione una opción'),
                               isExpanded: true,
                               items: const [
                                 DropdownMenuItem(
@@ -213,13 +343,11 @@ class _FormPageState extends State<FormPage> {
                                 DropdownMenuItem(
                                     value: 'La Rinconada - Vereda Cabildo',
                                     child:
-                                        Text('La Rinconada - Vereda Cabildo')),
-                                DropdownMenuItem(
-                                    value: 'Opción 3', child: Text('Opción 3'))
+                                        Text('La Rinconada - Vereda Cabildo'))
                               ],
                               onChanged: (value) {
                                 setState(() {
-                                  texto = value;
+                                  lugarIngreso = value;
                                 });
                               },
                               validator: (value) => value == null
@@ -247,6 +375,7 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
+                                controller: _placaAutomotora,
                                 style: const TextStyle(fontSize: 22.0),
                                 decoration: const InputDecoration(
                                     hintText: 'Ingrese una placa automotora',
@@ -256,6 +385,7 @@ class _FormPageState extends State<FormPage> {
                                   if (value!.isEmpty) {
                                     return 'Por favor ingrese una placa automotora';
                                   }
+                                  return null;
                                 }))
                       ],
                     ),
@@ -277,6 +407,7 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
+                                controller: _nPlacaAutomotora,
                                 style: const TextStyle(fontSize: 22.0),
                                 decoration: const InputDecoration(
                                     hintText:
@@ -285,8 +416,13 @@ class _FormPageState extends State<FormPage> {
                                     errorBorder: InputBorder.none),
                                 validator: (value) {
                                   if (value!.isEmpty) {
-                                    return 'Por favor ingrese una placa automotora';
+                                    return 'Por favor ingrese nuevamente la placa automotora';
                                   }
+
+                                  if (value != _placaAutomotora.text) {
+                                    return 'La placa automotora no coincide';
+                                  }
+                                  return null;
                                 }))
                       ],
                     ),
@@ -313,7 +449,7 @@ class _FormPageState extends State<FormPage> {
                                   errorBorder: InputBorder.none),
                               style: const TextStyle(
                                   fontSize: 22.0, color: Colors.black),
-                              hint: Text(texto1!),
+                              hint: const Text('Seleccione una opción'),
                               isExpanded: true,
                               items: const [
                                 DropdownMenuItem(
@@ -323,7 +459,7 @@ class _FormPageState extends State<FormPage> {
                               ],
                               onChanged: (valor) {
                                 setState(() {
-                                  texto1 = valor;
+                                  ingresoAccidente = valor;
                                 });
                               },
                               validator: (value) => value == null
@@ -355,7 +491,7 @@ class _FormPageState extends State<FormPage> {
                                   errorBorder: InputBorder.none),
                               style: const TextStyle(
                                   fontSize: 22.0, color: Colors.black),
-                              hint: Text(texto2!),
+                              hint: const Text('Seleccione una opción'),
                               isExpanded: true,
                               items: const [
                                 DropdownMenuItem(
@@ -379,7 +515,7 @@ class _FormPageState extends State<FormPage> {
                               ],
                               onChanged: (valor) {
                                 setState(() {
-                                  texto2 = valor;
+                                  tipoAutomotor = valor;
                                 });
                               },
                               validator: (value) => value == null
@@ -411,7 +547,7 @@ class _FormPageState extends State<FormPage> {
                                   errorBorder: InputBorder.none),
                               style: const TextStyle(
                                   fontSize: 22.0, color: Colors.black),
-                              hint: Text(texto1!),
+                              hint: const Text('Seleccione una opción'),
                               isExpanded: true,
                               items: const [
                                 DropdownMenuItem(
@@ -424,7 +560,7 @@ class _FormPageState extends State<FormPage> {
                               ],
                               onChanged: (valor) {
                                 setState(() {
-                                  texto1 = valor;
+                                  tipoServicio = valor;
                                 });
                               },
                               validator: (value) => value == null
@@ -451,14 +587,16 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
+                                controller: _marca,
                                 style: const TextStyle(fontSize: 22.0),
                                 decoration: const InputDecoration(
                                     border: InputBorder.none,
                                     hintText: 'Ingrese la marca del automotor'),
                                 validator: (value) {
                                   if (value!.isEmpty) {
-                                    return 'Por favor ingrese una placa automotora';
+                                    return 'Por favor ingrese una marca automotora';
                                   }
+                                  return null;
                                 }))
                       ],
                     ),
@@ -480,14 +618,16 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
+                                controller: _color,
                                 style: const TextStyle(fontSize: 22.0),
                                 decoration: const InputDecoration(
                                     border: InputBorder.none,
                                     hintText: 'Ingrese el color del automotor'),
                                 validator: (value) {
                                   if (value!.isEmpty) {
-                                    return 'Por favor ingrese una placa automotora';
+                                    return 'Por favor ingrese el color del automotor';
                                   }
+                                  return null;
                                 }))
                       ],
                     ),
@@ -523,7 +663,7 @@ class _FormPageState extends State<FormPage> {
                                       color: Colors.grey),
                                   child: TextButton(
                                       onPressed: () {
-                                        opciones(context);
+                                        opciones(1);
                                       },
                                       child: const Text('Cargar archivo',
                                           style: TextStyle(
@@ -531,16 +671,16 @@ class _FormPageState extends State<FormPage> {
                                               color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
-                                imagen == null
+                                inventario == false
                                     ? const Text('Seleccione un archivo',
                                         style: TextStyle(
                                             fontSize: 23.0,
                                             color: Colors.black54))
-                                    : const Text('Imagen seleccionada',
-                                    style: TextStyle(
-                                      fontSize: 23.0,
-                                      color: Colors.black
-                                    ),
+                                    : const Text(
+                                        'Inventario cargado',
+                                        style: TextStyle(
+                                            fontSize: 23.0,
+                                            color: Colors.black),
                                       )
                               ],
                             ),
@@ -578,11 +718,9 @@ class _FormPageState extends State<FormPage> {
                                   decoration: BoxDecoration(
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
-                                  child: isLoading
-                                      ? const CircularProgressIndicator()
-                                      : TextButton(
+                                  child: TextButton(
                                           onPressed: () {
-                                            opciones(context);
+                                            opciones(2);
                                           },
                                           child: const Text('Cargar archivo',
                                               style: TextStyle(
@@ -590,12 +728,17 @@ class _FormPageState extends State<FormPage> {
                                                   color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
-                                Text(
-                                    imagen == null
-                                        ? 'Seleccione un archivo'
-                                        : 'Imagen seleccionada',
-                                    style: const TextStyle(
-                                        fontSize: 23.0, color: Colors.black54))
+                                imagen1 == false
+                                    ? const Text('Seleccione un archivo',
+                                        style: TextStyle(
+                                            fontSize: 23.0,
+                                            color: Colors.black54))
+                                    : const Text(
+                                        'Foto 1 evidencia cargada',
+                                        style: TextStyle(
+                                            fontSize: 23.0,
+                                            color: Colors.black),
+                                      )
                               ],
                             ),
                           ),
@@ -632,11 +775,9 @@ class _FormPageState extends State<FormPage> {
                                   decoration: BoxDecoration(
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
-                                  child: isLoading
-                                      ? const CircularProgressIndicator()
-                                      : TextButton(
+                                  child: TextButton(
                                           onPressed: () {
-                                            opciones(context);
+                                            opciones(3);
                                           },
                                           child: const Text('Cargar archivo',
                                               style: TextStyle(
@@ -644,12 +785,17 @@ class _FormPageState extends State<FormPage> {
                                                   color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
-                                Text(
-                                    imagen == null
-                                        ? 'Seleccione un archivo'
-                                        : 'Imagen seleccionada',
-                                    style: const TextStyle(
-                                        fontSize: 23.0, color: Colors.black54))
+                                imagen2 == false
+                                    ? const Text('Seleccione un archivo',
+                                        style: TextStyle(
+                                            fontSize: 23.0,
+                                            color: Colors.black54))
+                                    : const Text(
+                                        'Foto 2 evidencia cargada',
+                                        style: TextStyle(
+                                            fontSize: 23.0,
+                                            color: Colors.black),
+                                      )
                               ],
                             ),
                           ),
@@ -686,11 +832,9 @@ class _FormPageState extends State<FormPage> {
                                   decoration: BoxDecoration(
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
-                                  child: isLoading
-                                      ? const CircularProgressIndicator()
-                                      : TextButton(
+                                  child: TextButton(
                                           onPressed: () {
-                                            opciones(context);
+                                            opciones(4);
                                           },
                                           child: const Text('Cargar archivo',
                                               style: TextStyle(
@@ -698,12 +842,17 @@ class _FormPageState extends State<FormPage> {
                                                   color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
-                                Text(
-                                    imagen == null
-                                        ? 'Seleccione un archivo'
-                                        : 'Imagen seleccionada',
-                                    style: const TextStyle(
-                                        fontSize: 23.0, color: Colors.black54))
+                                imagen3 == false
+                                    ? const Text('Seleccione un archivo',
+                                        style: TextStyle(
+                                            fontSize: 23.0,
+                                            color: Colors.black54))
+                                    : const Text(
+                                        'Foto 3 evidencia cargada',
+                                        style: TextStyle(
+                                            fontSize: 23.0,
+                                            color: Colors.black),
+                                      )
                               ],
                             ),
                           ),
@@ -740,11 +889,9 @@ class _FormPageState extends State<FormPage> {
                                   decoration: BoxDecoration(
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
-                                  child: isLoading
-                                      ? const CircularProgressIndicator()
-                                      : TextButton(
+                                  child: TextButton(
                                           onPressed: () {
-                                            opciones(context);
+                                            opciones(5);
                                           },
                                           child: const Text('Cargar archivo',
                                               style: TextStyle(
@@ -752,12 +899,17 @@ class _FormPageState extends State<FormPage> {
                                                   color: Colors.black))),
                                 ),
                                 const SizedBox(width: 10.0),
-                                Text(
-                                    imagen == null
-                                        ? 'Seleccione un archivo'
-                                        : 'Imagen seleccionada',
-                                    style: const TextStyle(
-                                        fontSize: 23.0, color: Colors.black54))
+                                imagen4 == false
+                                    ? const Text('Seleccione un archivo',
+                                        style: TextStyle(
+                                            fontSize: 23.0,
+                                            color: Colors.black54))
+                                    : const Text(
+                                        'Foto 4 evidencia cargada',
+                                        style: TextStyle(
+                                            fontSize: 23.0,
+                                            color: Colors.black),
+                                      )
                               ],
                             ),
                           ),
@@ -781,7 +933,8 @@ class _FormPageState extends State<FormPage> {
                                     Radius.circular(5.0)),
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
-                            child: const TextField(
+                            child: TextFormField(
+                                controller: _observaciones,
                               maxLines: 4,
                               style: TextStyle(fontSize: 22.0),
                               decoration: InputDecoration(
@@ -813,7 +966,7 @@ class _FormPageState extends State<FormPage> {
                                   errorBorder: InputBorder.none),
                               style: const TextStyle(
                                   fontSize: 22.0, color: Colors.black),
-                              hint: Text(texto4!),
+                              hint: const Text('Seleccione una opción'),
                               isExpanded: true,
                               items: const [
                                 DropdownMenuItem(
@@ -823,7 +976,7 @@ class _FormPageState extends State<FormPage> {
                               ],
                               onChanged: (valor) {
                                 setState(() {
-                                  texto4 = valor;
+                                  ingresoPatio = valor;
                                 });
                               },
                               validator: (value) => value == null
@@ -837,6 +990,7 @@ class _FormPageState extends State<FormPage> {
                       minWidth: double.infinity,
                       onPressed: () {
                         if (!isValidForm()) return;
+                        _alertConfirm(context);
                       },
                       color: Colors.green,
                       textColor: Colors.white,
@@ -846,7 +1000,7 @@ class _FormPageState extends State<FormPage> {
                           fontSize: 20.0,
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
