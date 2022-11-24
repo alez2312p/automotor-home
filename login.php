@@ -1,23 +1,17 @@
 <?php
 include 'conn.php';
 
-$username = $_POST["username"] ?? "";
-
-
-
+$id = $_POST["id"] ?? "";
 $password = $_POST["password"] ?? "";
 
-$usuarios = ("SELECT * FROM usuarios WHERE username='" .$username."' and password='" .$password."'");
+$usuario = ("SELECT * FROM usuarios WHERE id='$id' AND password='$password'");
 
-$queryResult = mysqli_query($connect, $usuarios);
+$result = mysqli_query($connect, $usuario);
 
-$result=array();
+$count= mysqli_num_rows($result);
 
-while($fetchData=$queryResult->fetch_assoc()) {
-    $result[]=$fetchData;
+if ($count == 1) {
+    echo json_encode("Success");
+}else{
+    echo json_encode("Error");
 }
-
-echo json_encode($result);
-
-mysqli_close($connect);
-?>

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:core';
 
+import 'package:a/pages/form.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 class Login extends StatefulWidget {
@@ -12,37 +14,38 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  String username = "";
-  
-  TextEditingController user1 = TextEditingController();
+  TextEditingController id = TextEditingController();
   TextEditingController pass1 = TextEditingController();
 
-  
-String msg='';
-
-Future<List> _login() async {
-  final response = await http.post(
-        Uri.parse("http://192.168.1.8/prueba1/login.php"),
-        body: {"username": user1.text, "password": pass1.text});
-
-  var datauser = json.decode(response.body); 
-
-  if(datauser.length==0){
-    setState(() {
-          msg="Login Fail";
-        });
-  }else{
-    if(datauser[0]['level']=='0'){
-       Navigator.pushReplacementNamed(context, 'form');
+  Future _login() async {
+    var url = Uri.http("10.1.1.16", '../login.php', {'q': '{http}'});
+    var response = await http.post(url, body: {
+      "id": id.text,
+      "password": pass1.text,
+    });
+    var data = json.decode(response.body);
+    if (data.toString() == "success") {
+      Fluttertoast.showToast(
+        msg: 'Login Successful',
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        toastLength: Toast.LENGTH_SHORT,
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FormPage(),
+        ),
+      );
+    } else {
+      Fluttertoast.showToast(
+        msg: 'id or password invalid',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        toastLength: Toast.LENGTH_SHORT
+        );
     }
-    setState(() {
-          username= datauser[0]['username'];
-        });
-
   }
-
-  return datauser;
-}
 
   bool isLoading = false;
   bool contrasenaVisible = true;
@@ -87,7 +90,7 @@ Future<List> _login() async {
                     child: Column(
                       children: [
                         TextFormField(
-                          controller: user1,
+                          controller: id,
                           autocorrect: false,
                           keyboardType: TextInputType.text,
                           decoration: const InputDecoration(
