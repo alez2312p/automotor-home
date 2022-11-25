@@ -19,31 +19,16 @@ class _LoginState extends State<Login> {
 
   Future _login() async {
     var url = Uri.http("10.1.1.16", '../login.php', {'q': '{http}'});
+    
     var response = await http.post(url, body: {
-      "id": id.text,
-      "password": pass1.text,
+      "id": id.toString(),
+      "password": pass1.toString(),
     });
-    var data = json.decode(response.body);
-    if (data.toString() == "success") {
-      Fluttertoast.showToast(
-        msg: 'Login Successful',
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-        toastLength: Toast.LENGTH_SHORT,
-      );
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => FormPage(),
-        ),
-      );
+    var data = jsonDecode(response.body);
+    if (data != null) {
+      print("Login...");
     } else {
-      Fluttertoast.showToast(
-        msg: 'id or password invalid',
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        toastLength: Toast.LENGTH_SHORT
-        );
+      print("No login...");
     }
   }
 
