@@ -17,18 +17,28 @@ class _LoginState extends State<Login> {
   TextEditingController id = TextEditingController();
   TextEditingController pass1 = TextEditingController();
 
-  Future _login() async {
-    var url = Uri.http("10.1.1.16", '../login.php', {'q': '{http}'});
-    
-    var response = await http.post(url, body: {
-      "id": id.toString(),
-      "password": pass1.toString(),
-    });
-    var data = jsonDecode(response.body);
-    if (data != null) {
-      print("Login...");
+  signIn(String id, password) async {
+    Map data = {'id': id, 'password': password};
+   //in above line 'id' and 'password' are the end Points of the API
+    var body = json.encode(data);
+    var response = await http.post(
+      Uri.parse('http://10.1.1.16/xampp/automotor-home/login.php'),
+      body: body,
+      headers: {
+        'Content-Type': 'application/json',
+        'accept': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    );
+    if (response.statusCode == 200) {
+      var jsonData = await json.decode(json.encode(response.body));
+      if (jsonData == 1) {
+          print('Login Successfull...!');
+          Navigator.pushReplacementNamed(context, 'form');
+      }
     } else {
-      print("No login...");
+        print('Wrong Credentials...!');
+     
     }
   }
 
@@ -114,7 +124,7 @@ class _LoginState extends State<Login> {
                           MaterialButton(
                               minWidth: double.infinity,
                               onPressed: () {
-                                _login();
+                                signIn(id.text, pass1.text);
                               },
                               color: Colors.blue,
                               textColor: Colors.white,
