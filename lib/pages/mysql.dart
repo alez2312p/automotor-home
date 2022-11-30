@@ -3,19 +3,19 @@ import 'package:mysql1/mysql1.dart';
 class Mysql {
   static String host = '10.1.1.16',
                 user = 'root',
-                password = "",
-                db = 'automotor';
+                password = '',
+                db = 'login';
   static int port = 3306;
 
   Mysql();
 
   Future<MySqlConnection> getConnection() async {
-    var settings = ConnectionSettings(
+    var settings = new ConnectionSettings(
       host: host,
+      port: port,
       user: user,
       password: password,
-      db: db,
-      port: port,
+      db: db
     );
     return await MySqlConnection.connect(settings);
   }

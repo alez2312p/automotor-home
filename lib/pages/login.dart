@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:a/pages/form.dart';
+import 'package:a/pages/mysql.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
@@ -16,30 +17,19 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   TextEditingController id = TextEditingController();
   TextEditingController pass1 = TextEditingController();
+  var db = Mysql();
+  var des = '';
 
-  signIn(String id, password) async {
-    Map data = {'id': id, 'password': password};
-   //in above line 'id' and 'password' are the end Points of the API
-    var body = json.encode(data);
-    var response = await http.post(
-      Uri.parse('http://10.1.1.16/xampp/automotor-home/login.php'),
-      body: body,
-      headers: {
-        'Content-Type': 'application/json',
-        'accept': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    );
-    if (response.statusCode == 200) {
-      var jsonData = await json.decode(json.encode(response.body));
-      if (jsonData == 1) {
-          print('Login Successfull...!');
-          Navigator.pushReplacementNamed(context, 'form');
-      }
-    } else {
-        print('Wrong Credentials...!');
-     
-    }
+  void signIn(String id, pass1) async {
+    db.getConnection().then((conn) {
+      String sql = 'SELECT * FROM usuarios WHERE id = ?;';
+      conn.query(sql).then((results) {
+        for (var row in results) {
+          des = row[0];
+          print('ID: ${id[0]}');
+        }
+      });
+    });
   }
 
   bool isLoading = false;
@@ -141,12 +131,7 @@ class _LoginState extends State<Login> {
                                 ),
                               )),
                           const SizedBox(height: 10.8),
-                          TextButton(
-                              onPressed: () {},
-                              child: const Text(
-                                'Recuperar contraseña',
-                                style: TextStyle(fontSize: 20),
-                              ))
+                          Text('Hola $des'),
                         ],
                       )),
                 ),
