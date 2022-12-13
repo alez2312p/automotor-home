@@ -1,6 +1,6 @@
 <?php
 
-$connect = mysqli_connect("localhost", "root", "", "prueba1");
+$connect = mysqli_connect("localhost", "root", "", "automotor");
 if (!$connect) {
     die("Connection failed: " .  mysqli_connect_error());
 }

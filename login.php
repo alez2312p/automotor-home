@@ -1,23 +1,31 @@
 <?php
-include 'conn.php';
 
-$username = $_POST["username"] ?? "";
-
-
-
-$password = $_POST["password"] ?? "";
-
-$usuarios = ("SELECT * FROM usuarios WHERE username='" .$username."' and password='" .$password."'");
-
-$queryResult = mysqli_query($connect, $usuarios);
-
-$result=array();
-
-while($fetchData=$queryResult->fetch_assoc()) {
-    $result[]=$fetchData;
+$connect = mysqli_connect("localhost", "root", "", "automotor");
+if (!$connect) {
+	die("Connection failed: " .  mysqli_connect_error());
 }
 
-echo json_encode($result);
+echo "Connected successfully ";
+// Iniciar sesión
+session_start();
 
-mysqli_close($connect);
-?>
+// Obtener los datos
+if (isset($_POST['username']) || isset($_POST['password'])) {
+	$username = $_POST['username'];
+	$password = $_POST['password'];
+}else {
+	$username = null;
+	$password = null;
+}
+
+// Verificar usuario
+$query = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
+$result = mysqli_query($connect, $query);
+$num_rows = mysqli_num_rows($result);
+
+if ($num_rows > 0) {
+	$_SESSION['username'] = $username;
+	echo "success";
+} else {
+	echo "failure";
+}
