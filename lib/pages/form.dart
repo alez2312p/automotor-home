@@ -1,10 +1,8 @@
 import 'dart:io';
-import 'package:a/pages/mysql.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'package:image_picker/image_picker.dart';
-import 'package:mysql1/mysql1.dart';
+import 'package:http/http.dart' as http;
 
 class FormPage extends StatefulWidget {
   const FormPage({super.key});
@@ -19,65 +17,31 @@ class _FormPageState extends State<FormPage> {
   String? tipoAutomotor;
   String? tipoServicio;
   String? ingresoPatio;
+
   bool inventario = false;
   bool imagen1 = false;
   bool imagen2 = false;
   bool imagen3 = false;
   bool imagen4 = false;
-
   bool isLoading = false;
   bool nameFile = false;
 
   File? imagen;
 
+  TextEditingController placaAutomotoraController = TextEditingController();
+  TextEditingController nPlacaAutomotoraController = TextEditingController();
+  TextEditingController marcaController = TextEditingController();
+  TextEditingController colorController = TextEditingController();
+  TextEditingController observacionesController = TextEditingController();
+
   final _formKey = GlobalKey<FormState>();
-  final _placaAutomotora = TextEditingController();
-  final _nPlacaAutomotora = TextEditingController();
-  final _marca = TextEditingController();
-  final _color = TextEditingController();
-  final _observaciones = TextEditingController();
   final _picker = ImagePicker();
 
   var _pickedFile;
 
-  var db = Mysql();
-  var lugarIngresoMysql = '';
-  var userId = 1;
-  void _getCustomer() {
-    db.getConnection().then((conn) {
-      String sql =
-          'SELECT marca FROM automotor.automotor WHERE id = 1;' [userId];
-      conn.query(sql).then((results) {
-        for (var row in results) {
-          print('Lugar ingreso: ${row[1]}');
-        }
-      });
-    });
-  }
-
   @override
   void initState() {
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _placaAutomotora.dispose();
-    super.dispose();
-  }
-
-  _printLatestValue() {
-    print("----------------------------------------------");
-    print("Lugar de ingreso: ${lugarIngreso}");
-    print("Placa automotora: ${_placaAutomotora.text}");
-    print("Nuevamente placa automotora: ${_nPlacaAutomotora.text}");
-    print("Ingreso por accidente: ${ingresoAccidente}");
-    print("Tipo de servicio: ${tipoServicio}");
-    print("Tipo de automotor: ${tipoAutomotor}");
-    print("Marca: ${_marca.text}");
-    print("Color: ${_color.text}");
-    print("Observaciones: ${_observaciones.text}");
-    print("Ingreso propio: ${ingresoPatio}");
   }
 
   opciones(op) {
@@ -150,23 +114,44 @@ class _FormPageState extends State<FormPage> {
             ),
           );
         });
-  
-    if(op == 1) {
+
+    if (op == 1) {
       inventario = true;
     }
-    if(op == 2) {
+    if (op == 2) {
       imagen1 = true;
     }
-    if(op == 3) {
+    if (op == 3) {
       imagen2 = true;
     }
-    if(op == 4) {
+    if (op == 4) {
       imagen3 = true;
     }
-    if(op == 5) {
+    if (op == 5) {
       imagen4 = true;
     }
+  }
 
+  Future<void> confirm() async {
+    var url = "http://172.16.9.233/automotor-home/insert.php";
+
+    var response = await http.post(Uri.parse(url), body: {
+      'lugarIngreso': lugarIngreso,
+      'placaAutomotora': placaAutomotoraController.text,
+      'nPlacaAutomotora': nPlacaAutomotoraController.text,
+      'ingresoAccidente': ingresoAccidente,
+      'tipoAutomotor': tipoAutomotor,
+      'tipoServicio': tipoServicio,
+      'marca': marcaController.text,
+      'color': colorController.text,
+      //'inventario': inventario,
+      //'foto1Evidencia': foto1Evidencia,
+      //'foto2Evidencia': foto2Evidencia,
+      //'foto3Evidencia': foto3Evidencia,
+      //'foto4Evidencia': foto4Evidencia,
+      'observaciones': observacionesController.text,
+      'ingresoPropioPatio': ingresoPatio,
+    });
   }
 
   _alertConfirm(BuildContext context) {
@@ -182,16 +167,15 @@ class _FormPageState extends State<FormPage> {
                 child: const Text("Aceptar"),
                 onPressed: () {
                   if (!isValidForm()) return;
-                  _printLatestValue();
+                  confirm();
                   _formKey.currentState?.reset();
-                  _placaAutomotora.clear();
-                  _nPlacaAutomotora.clear();
-                  _marca.clear();
-                  _color.clear();
-                  _observaciones.clear();
+                  placaAutomotoraController.clear();
+                  nPlacaAutomotoraController.clear();
+                  marcaController.clear();
+                  colorController.clear();
+                  observacionesController.clear();
                   Navigator.of(context).pop();
                   _alertSave(context);
-                  print('lugarIngresoMysql: $lugarIngresoMysql');
                   print('Enviado');
                 }),
             TextButton(
@@ -247,42 +231,43 @@ class _FormPageState extends State<FormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.white,
           title: SizedBox(
-              height: 500,
-              width: 250,
+              width: size.width * 0.4,
+              height: size.height * 0.5,
               child: Row(children: [
                 SizedBox(
-                  height: 40.0,
+                  height: size.height * 0.05,
                   child: Image.asset('assets/logo.png'),
                 )
               ])),
           actions: [
             InkWell(
-                child: Container(
-              height: 50.0,
-              padding: const EdgeInsets.all(15.0),
-              margin: const EdgeInsets.all(4.5),
-              decoration: const BoxDecoration(
-                color: Colors.green,
+              child: Container(
+                padding: const EdgeInsets.all(12.0),
+                margin: const EdgeInsets.all(4.5),
+                decoration: const BoxDecoration(
+                  color: Colors.green,
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  'Nuevo Registro',
+                  style: TextStyle(fontSize: 20.0),
+                ),
               ),
-              alignment: Alignment.center,
-              child: const Text(
-                'Nuevo Registro',
-                style: TextStyle(fontSize: 20.0),
-              ),
-            ), 
-            onTap: () {
-              if (isValidForm()) return;
-                  _formKey.currentState?.reset();
-                  _placaAutomotora.clear();
-                  _nPlacaAutomotora.clear();
-                  _marca.clear();
-                  _color.clear();
-                  _observaciones.clear();
-            },
+              onTap: () {
+                if (isValidForm()) return;
+                _formKey.currentState?.reset();
+                placaAutomotoraController.clear();
+                nPlacaAutomotoraController.clear();
+                marcaController.clear();
+                colorController.clear();
+                observacionesController.clear();
+              },
             ),
           ],
         ),
@@ -293,11 +278,10 @@ class _FormPageState extends State<FormPage> {
               textAlign: TextAlign.center,
               'Ingreso nuevo automotor',
               style: TextStyle(
-                fontSize: 40.0,
+                fontSize: 30.0,
                 fontWeight: FontWeight.w400,
               ),
             ),
-            const SizedBox(width: 20),
             Form(
               key: _formKey,
               child: Container(
@@ -306,7 +290,7 @@ class _FormPageState extends State<FormPage> {
                 decoration: BoxDecoration(
                     border: Border.all(
                       color: Colors.black54,
-                      width: 3,
+                      width: 2,
                     ),
                     borderRadius: const BorderRadius.all(Radius.circular(5))),
                 child: Column(
@@ -333,7 +317,7 @@ class _FormPageState extends State<FormPage> {
                                   border: InputBorder.none,
                                   errorBorder: InputBorder.none),
                               style: const TextStyle(
-                                  fontSize: 22.0, color: Colors.black),
+                                  fontSize: 18.0, color: Colors.black),
                               hint: const Text('Seleccione una opción'),
                               isExpanded: true,
                               items: const [
@@ -356,7 +340,7 @@ class _FormPageState extends State<FormPage> {
                             ))
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -366,7 +350,6 @@ class _FormPageState extends State<FormPage> {
                               fontWeight: FontWeight.bold, fontSize: 20.0),
                         ),
                         Container(
-                            height: 50.0,
                             width: double.maxFinite,
                             padding: const EdgeInsets.only(left: 10.0),
                             decoration: BoxDecoration(
@@ -375,8 +358,8 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
-                                controller: _placaAutomotora,
-                                style: const TextStyle(fontSize: 22.0),
+                                controller: placaAutomotoraController,
+                                style: const TextStyle(fontSize: 18.0),
                                 decoration: const InputDecoration(
                                     hintText: 'Ingrese una placa automotora',
                                     border: InputBorder.none,
@@ -389,7 +372,7 @@ class _FormPageState extends State<FormPage> {
                                 }))
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -407,8 +390,8 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
-                                controller: _nPlacaAutomotora,
-                                style: const TextStyle(fontSize: 22.0),
+                                controller: nPlacaAutomotoraController,
+                                style: const TextStyle(fontSize: 18.0),
                                 decoration: const InputDecoration(
                                     hintText:
                                         'Ingrese nuevamente la placa del automotor',
@@ -419,14 +402,14 @@ class _FormPageState extends State<FormPage> {
                                     return 'Por favor ingrese nuevamente la placa automotora';
                                   }
 
-                                  if (value != _placaAutomotora.text) {
+                                  if (value != placaAutomotoraController.text) {
                                     return 'La placa automotora no coincide';
                                   }
                                   return null;
                                 }))
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -448,7 +431,7 @@ class _FormPageState extends State<FormPage> {
                                   border: InputBorder.none,
                                   errorBorder: InputBorder.none),
                               style: const TextStyle(
-                                  fontSize: 22.0, color: Colors.black),
+                                  fontSize: 18.0, color: Colors.black),
                               hint: const Text('Seleccione una opción'),
                               isExpanded: true,
                               items: const [
@@ -468,7 +451,7 @@ class _FormPageState extends State<FormPage> {
                             ))
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -490,7 +473,7 @@ class _FormPageState extends State<FormPage> {
                                   border: InputBorder.none,
                                   errorBorder: InputBorder.none),
                               style: const TextStyle(
-                                  fontSize: 22.0, color: Colors.black),
+                                  fontSize: 18.0, color: Colors.black),
                               hint: const Text('Seleccione una opción'),
                               isExpanded: true,
                               items: const [
@@ -524,7 +507,7 @@ class _FormPageState extends State<FormPage> {
                             ))
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -546,7 +529,7 @@ class _FormPageState extends State<FormPage> {
                                   border: InputBorder.none,
                                   errorBorder: InputBorder.none),
                               style: const TextStyle(
-                                  fontSize: 22.0, color: Colors.black),
+                                  fontSize: 18.0, color: Colors.black),
                               hint: const Text('Seleccione una opción'),
                               isExpanded: true,
                               items: const [
@@ -569,7 +552,7 @@ class _FormPageState extends State<FormPage> {
                             ))
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -587,8 +570,8 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
-                                controller: _marca,
-                                style: const TextStyle(fontSize: 22.0),
+                                controller: marcaController,
+                                style: const TextStyle(fontSize: 18.0),
                                 decoration: const InputDecoration(
                                     border: InputBorder.none,
                                     hintText: 'Ingrese la marca del automotor'),
@@ -600,7 +583,7 @@ class _FormPageState extends State<FormPage> {
                                 }))
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -618,8 +601,8 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
-                                controller: _color,
-                                style: const TextStyle(fontSize: 22.0),
+                                controller: colorController,
+                                style: const TextStyle(fontSize: 18.0),
                                 decoration: const InputDecoration(
                                     border: InputBorder.none,
                                     hintText: 'Ingrese el color del automotor'),
@@ -631,7 +614,7 @@ class _FormPageState extends State<FormPage> {
                                 }))
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -648,8 +631,6 @@ class _FormPageState extends State<FormPage> {
                               border:
                                   Border.all(color: Colors.black45, width: 1)),
                           child: Container(
-                            height: 50.0,
-                            margin: const EdgeInsets.only(right: 20.0),
                             decoration: const BoxDecoration(
                               borderRadius:
                                   BorderRadius.all(Radius.circular(50.0)),
@@ -666,20 +647,19 @@ class _FormPageState extends State<FormPage> {
                                         opciones(1);
                                       },
                                       child: const Text('Cargar archivo',
-                                          style: TextStyle(
-                                              fontSize: 20.0,
-                                              color: Colors.black))),
+                                          style:
+                                              TextStyle(color: Colors.black))),
                                 ),
-                                const SizedBox(width: 10.0),
+                                SizedBox(width: size.width * 0.02),
                                 inventario == false
                                     ? const Text('Seleccione un archivo',
                                         style: TextStyle(
-                                            fontSize: 23.0,
+                                            fontSize: 18.0,
                                             color: Colors.black54))
                                     : const Text(
                                         'Inventario cargado',
                                         style: TextStyle(
-                                            fontSize: 23.0,
+                                            fontSize: 18.0,
                                             color: Colors.black),
                                       )
                               ],
@@ -688,7 +668,7 @@ class _FormPageState extends State<FormPage> {
                         )
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -705,8 +685,6 @@ class _FormPageState extends State<FormPage> {
                               border:
                                   Border.all(color: Colors.black45, width: 1)),
                           child: Container(
-                            height: 50.0,
-                            margin: const EdgeInsets.only(right: 20.0),
                             decoration: const BoxDecoration(
                               borderRadius:
                                   BorderRadius.all(Radius.circular(50.0)),
@@ -719,24 +697,23 @@ class _FormPageState extends State<FormPage> {
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
                                   child: TextButton(
-                                          onPressed: () {
-                                            opciones(2);
-                                          },
-                                          child: const Text('Cargar archivo',
-                                              style: TextStyle(
-                                                  fontSize: 20.0,
-                                                  color: Colors.black))),
+                                      onPressed: () {
+                                        opciones(2);
+                                      },
+                                      child: const Text('Cargar archivo',
+                                          style:
+                                              TextStyle(color: Colors.black))),
                                 ),
-                                const SizedBox(width: 10.0),
+                                SizedBox(width: size.width * 0.02),
                                 imagen1 == false
                                     ? const Text('Seleccione un archivo',
                                         style: TextStyle(
-                                            fontSize: 23.0,
+                                            fontSize: 18.0,
                                             color: Colors.black54))
                                     : const Text(
                                         'Foto 1 evidencia cargada',
                                         style: TextStyle(
-                                            fontSize: 23.0,
+                                            fontSize: 18.0,
                                             color: Colors.black),
                                       )
                               ],
@@ -745,7 +722,7 @@ class _FormPageState extends State<FormPage> {
                         )
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -762,8 +739,6 @@ class _FormPageState extends State<FormPage> {
                               border:
                                   Border.all(color: Colors.black45, width: 1)),
                           child: Container(
-                            height: 50.0,
-                            margin: const EdgeInsets.only(right: 20.0),
                             decoration: const BoxDecoration(
                               borderRadius:
                                   BorderRadius.all(Radius.circular(50.0)),
@@ -776,24 +751,23 @@ class _FormPageState extends State<FormPage> {
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
                                   child: TextButton(
-                                          onPressed: () {
-                                            opciones(3);
-                                          },
-                                          child: const Text('Cargar archivo',
-                                              style: TextStyle(
-                                                  fontSize: 20.0,
-                                                  color: Colors.black))),
+                                      onPressed: () {
+                                        opciones(3);
+                                      },
+                                      child: const Text('Cargar archivo',
+                                          style:
+                                              TextStyle(color: Colors.black))),
                                 ),
-                                const SizedBox(width: 10.0),
+                                SizedBox(width: size.width * 0.02),
                                 imagen2 == false
                                     ? const Text('Seleccione un archivo',
                                         style: TextStyle(
-                                            fontSize: 23.0,
+                                            fontSize: 18.0,
                                             color: Colors.black54))
                                     : const Text(
                                         'Foto 2 evidencia cargada',
                                         style: TextStyle(
-                                            fontSize: 23.0,
+                                            fontSize: 18.0,
                                             color: Colors.black),
                                       )
                               ],
@@ -802,7 +776,7 @@ class _FormPageState extends State<FormPage> {
                         )
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -819,8 +793,6 @@ class _FormPageState extends State<FormPage> {
                               border:
                                   Border.all(color: Colors.black45, width: 1)),
                           child: Container(
-                            height: 50.0,
-                            margin: const EdgeInsets.only(right: 20.0),
                             decoration: const BoxDecoration(
                               borderRadius:
                                   BorderRadius.all(Radius.circular(50.0)),
@@ -833,24 +805,23 @@ class _FormPageState extends State<FormPage> {
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
                                   child: TextButton(
-                                          onPressed: () {
-                                            opciones(4);
-                                          },
-                                          child: const Text('Cargar archivo',
-                                              style: TextStyle(
-                                                  fontSize: 20.0,
-                                                  color: Colors.black))),
+                                      onPressed: () {
+                                        opciones(4);
+                                      },
+                                      child: const Text('Cargar archivo',
+                                          style:
+                                              TextStyle(color: Colors.black))),
                                 ),
-                                const SizedBox(width: 10.0),
+                                SizedBox(width: size.width * 0.02),
                                 imagen3 == false
                                     ? const Text('Seleccione un archivo',
                                         style: TextStyle(
-                                            fontSize: 23.0,
+                                            fontSize: 18.0,
                                             color: Colors.black54))
                                     : const Text(
                                         'Foto 3 evidencia cargada',
                                         style: TextStyle(
-                                            fontSize: 23.0,
+                                            fontSize: 18.0,
                                             color: Colors.black),
                                       )
                               ],
@@ -859,7 +830,7 @@ class _FormPageState extends State<FormPage> {
                         )
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -876,8 +847,6 @@ class _FormPageState extends State<FormPage> {
                               border:
                                   Border.all(color: Colors.black45, width: 1)),
                           child: Container(
-                            height: 50.0,
-                            margin: const EdgeInsets.only(right: 20.0),
                             decoration: const BoxDecoration(
                               borderRadius:
                                   BorderRadius.all(Radius.circular(50.0)),
@@ -890,24 +859,23 @@ class _FormPageState extends State<FormPage> {
                                       border: Border.all(color: Colors.black),
                                       color: Colors.grey),
                                   child: TextButton(
-                                          onPressed: () {
-                                            opciones(5);
-                                          },
-                                          child: const Text('Cargar archivo',
-                                              style: TextStyle(
-                                                  fontSize: 20.0,
-                                                  color: Colors.black))),
+                                      onPressed: () {
+                                        opciones(5);
+                                      },
+                                      child: const Text('Cargar archivo',
+                                          style:
+                                              TextStyle(color: Colors.black))),
                                 ),
-                                const SizedBox(width: 10.0),
+                                SizedBox(width: size.width * 0.02),
                                 imagen4 == false
                                     ? const Text('Seleccione un archivo',
                                         style: TextStyle(
-                                            fontSize: 23.0,
+                                            fontSize: 18.0,
                                             color: Colors.black54))
                                     : const Text(
                                         'Foto 4 evidencia cargada',
                                         style: TextStyle(
-                                            fontSize: 23.0,
+                                            fontSize: 18.0,
                                             color: Colors.black),
                                       )
                               ],
@@ -916,7 +884,7 @@ class _FormPageState extends State<FormPage> {
                         )
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -934,10 +902,10 @@ class _FormPageState extends State<FormPage> {
                                 border: Border.all(
                                     color: Colors.black45, width: 1)),
                             child: TextFormField(
-                                controller: _observaciones,
+                              controller: observacionesController,
                               maxLines: 4,
-                              style: TextStyle(fontSize: 22.0),
-                              decoration: InputDecoration(
+                              style: const TextStyle(fontSize: 18.0),
+                              decoration: const InputDecoration(
                                   border: InputBorder.none,
                                   hintText: 'Ingrese las observaciones'),
                             ))
@@ -965,7 +933,7 @@ class _FormPageState extends State<FormPage> {
                                   border: InputBorder.none,
                                   errorBorder: InputBorder.none),
                               style: const TextStyle(
-                                  fontSize: 22.0, color: Colors.black),
+                                  fontSize: 18.0, color: Colors.black),
                               hint: const Text('Seleccione una opción'),
                               isExpanded: true,
                               items: const [

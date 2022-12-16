@@ -4,6 +4,7 @@ import 'dart:core';
 import 'package:a/pages/form.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -15,11 +16,48 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
 
-  late String _username;
-  late String _password;
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
 
   bool isLoading = false;
   bool contrasenaVisible = true;
+
+  Future<void> login() async {
+    if (usernameController.text.isEmpty || passwordController.text.isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Ingrese sus credenciales',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.white,
+        textColor: Colors.black,
+        fontSize: 15,
+      );
+    } else {
+      String username = usernameController.text;
+      String password = passwordController.text;
+
+      var url =
+          "http://172.16.9.233/automotor-home/login.php";
+
+      var response = await http.post(Uri.parse(url), body: {
+        "username": usernameController.text,
+        "password": passwordController.text,
+      });
+      var data = response.body;
+      if (data == "Connected successfully success") {
+        Navigator.pushReplacementNamed(context, 'form');
+      } else {
+        Fluttertoast.showToast(
+          msg: 'credenciales invalidas',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.white,
+          textColor: Colors.red,
+          fontSize: 15,
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,75 +100,42 @@ class _LoginState extends State<Login> {
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: Column(
                         children: [
-                          TextFormField(
-                            autocorrect: false,
-                            keyboardType: TextInputType.text,
-                            decoration: const InputDecoration(
-                              labelText: 'Ingrese número de documento',
-                              hintText: 'Número de documento',
-                              prefixIcon: Icon(Icons.account_circle_rounded),
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Por favor ingrese su nombre';
-                              }
-                              return null;
-                            },
-                            onSaved: (value) => _username = value!,
-                          ),
+                          TextField(
+                              controller: usernameController,
+                              autocorrect: false,
+                              keyboardType: TextInputType.text,
+                              decoration: const InputDecoration(
+                                labelText: 'Ingrese número de documento',
+                                hintText: 'Número de documento',
+                                prefixIcon: Icon(Icons.account_circle_rounded),
+                                border: OutlineInputBorder(),
+                              )),
                           const SizedBox(height: 20.0),
-                          TextFormField(
-                            keyboardType: TextInputType.visiblePassword,
-                            obscureText: contrasenaVisible,
-                            decoration: InputDecoration(
-                                labelText: 'Ingrese la contraseña',
-                                hintText: 'Contraseña',
-                                prefixIcon: const Icon(Icons.password_rounded),
-                                border: const OutlineInputBorder(),
-                                suffixIcon: IconButton(
-                                  icon: Icon(contrasenaVisible
-                                      ? Icons.visibility
-                                      : Icons.visibility_off),
-                                  onPressed: () {
-                                    setState(() {
-                                      contrasenaVisible = !contrasenaVisible;
-                                    });
-                                  },
-                                )),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Por favor ingrese su clave';
-                              }
-                              return null;
-                            },
-                            onSaved: (value) => _password = value!,
-                          ),
+                          TextField(
+                              controller: passwordController,
+                              keyboardType: TextInputType.visiblePassword,
+                              obscureText: contrasenaVisible,
+                              decoration: InputDecoration(
+                                  labelText: 'Ingrese la contraseña',
+                                  hintText: 'Contraseña',
+                                  prefixIcon:
+                                      const Icon(Icons.password_rounded),
+                                  border: const OutlineInputBorder(),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(contrasenaVisible
+                                        ? Icons.visibility
+                                        : Icons.visibility_off),
+                                    onPressed: () {
+                                      setState(() {
+                                        contrasenaVisible = !contrasenaVisible;
+                                      });
+                                    },
+                                  ))),
                           const SizedBox(height: 20.0),
                           MaterialButton(
                               minWidth: double.infinity,
-                              onPressed: () async {
-                                if (_formKey.currentState!.validate()) {
-                                  _formKey.currentState!.save();
-                                  final response = await http.post(
-                                    Uri.parse(
-                                        'http://172.16.9.233/automotor-home/login.php'),
-                                    body: {
-                                      'username': _username,
-                                      'password': _password,
-                                    },
-                                  );
-                                  final responseData = json.decode(json.encode(response.body));
-                                      print('Valor del responseData antes del if ' + responseData);
-                                  if (responseData == 'success') {
-                                    print('Valor en el if ' + responseData);
-                                    Navigator.pushReplacementNamed(
-                                        context, 'form');
-                                  } else {
-                                    print('Valor en el else ' + responseData);
-                                    print('No se inició sesión');
-                                  }
-                                }
+                              onPressed: () {
+                                login();
                               },
                               color: Colors.blue,
                               textColor: Colors.white,

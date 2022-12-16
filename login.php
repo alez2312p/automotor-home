@@ -29,3 +29,5 @@ if ($num_rows > 0) {
 } else {
 	echo "failure";
 }
+
+mysqli_close($connect);
