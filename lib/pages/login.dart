@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'dart:core';
 
-import 'package:a/pages/form.dart';
+import 'package:automotor/pages/form.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
@@ -36,16 +35,15 @@ class _LoginState extends State<Login> {
       String username = usernameController.text;
       String password = passwordController.text;
 
-      var url =
-          "http://172.16.9.233/automotor-home/login.php";
+      var url = "http://192.168.1.13/automotor-home/login.php";
 
       var response = await http.post(Uri.parse(url), body: {
-        "username": usernameController.text,
-        "password": passwordController.text,
+        "username": username,
+        "password": password,
       });
       var data = response.body;
       if (data == "Connected successfully success") {
-        Navigator.pushReplacementNamed(context, 'form');
+        Navigator.push(context, MaterialPageRoute(builder: (context)=> FormPage()));
       } else {
         Fluttertoast.showToast(
           msg: 'credenciales invalidas',
@@ -67,9 +65,9 @@ class _LoginState extends State<Login> {
       backgroundColor: Colors.blue,
       body: SingleChildScrollView(
         child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 100, horizontal: 20),
+          margin: const EdgeInsets.symmetric(vertical: 300, horizontal: 20),
           width: size.width * 1,
-          height: size.height * 0.60,
+          height: size.height * 0.40,
           decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(color: Colors.black, width: 2),

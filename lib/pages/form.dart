@@ -13,20 +13,19 @@ class FormPage extends StatefulWidget {
 
 class _FormPageState extends State<FormPage> {
   String? lugarIngreso;
+  String? placaAutomotora;
+  String? nPlacaAutomotora;
   String? ingresoAccidente;
   String? tipoAutomotor;
   String? tipoServicio;
+  String? marca;
+  String? color;
+  String? observaciones;
   String? ingresoPatio;
 
-  bool inventario = false;
-  bool imagen1 = false;
-  bool imagen2 = false;
-  bool imagen3 = false;
-  bool imagen4 = false;
   bool isLoading = false;
   bool nameFile = false;
-
-  File? imagen;
+  List<bool> imageLoaded = [false, false, false, false, false];
 
   TextEditingController placaAutomotoraController = TextEditingController();
   TextEditingController nPlacaAutomotoraController = TextEditingController();
@@ -35,16 +34,16 @@ class _FormPageState extends State<FormPage> {
   TextEditingController observacionesController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
-  final _picker = ImagePicker();
 
-  var _pickedFile;
+  final List<File> _image = [File(""), File(""), File(""), File(""), File("")];
+  final List<String> _fileName = ["", "", "", "", ""];
 
   @override
   void initState() {
     super.initState();
   }
 
-  opciones(op) {
+  /* opciones(op) {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -114,44 +113,78 @@ class _FormPageState extends State<FormPage> {
             ),
           );
         });
+  }
 
-    if (op == 1) {
-      inventario = true;
-    }
-    if (op == 2) {
-      imagen1 = true;
-    }
-    if (op == 3) {
-      imagen2 = true;
-    }
-    if (op == 4) {
-      imagen3 = true;
-    }
-    if (op == 5) {
-      imagen4 = true;
-    }
+  Future selectImage(op) async {
+    final _picker = ImagePicker();
+    var image = await _picker.pickImage(source: ImageSource.camera);
+    setState(() {
+      _image = File(image!.path);
+      inventa = true;
+    });
+    Navigator.of(context).pop();
+  }
+*/
+
+  Future getImage(int _id) async {
+    final _picker = ImagePicker();
+    var image = await _picker.pickImage(source: ImageSource.camera);
+    bool imageLoaded = false;
+    setState(() {
+      _image[_id] = File(image!.path);
+      _fileName[_id] =
+          '${placaAutomotoraController.text}-${image.path.split('/').last}';
+      imageLoaded = true;
+    });
+    print(imageLoaded);
+    return imageLoaded;
   }
 
   Future<void> confirm() async {
-    var url = "http://172.16.9.233/automotor-home/insert.php";
+    const directory = "/storage/emulated/0/Pictures";
+    await _image[0].copy('$directory/${_fileName[0]}');
+    await _image[1].copy('$directory/${_fileName[1]}');
+    await _image[2].copy('$directory/${_fileName[2]}');
+    await _image[3].copy('$directory/${_fileName[3]}');
+    await _image[4].copy('$directory/${_fileName[4]}');
 
-    var response = await http.post(Uri.parse(url), body: {
+    placaAutomotora = placaAutomotoraController.text;
+    nPlacaAutomotora = nPlacaAutomotoraController.text;
+    marca = marcaController.text;
+    color = colorController.text;
+    observaciones = observacionesController.text;
+
+    var url = "http://192.168.1.13/automotor-home/insert.php";
+
+    Map dataSend = {
       'lugarIngreso': lugarIngreso,
-      'placaAutomotora': placaAutomotoraController.text,
-      'nPlacaAutomotora': nPlacaAutomotoraController.text,
+      'placaAutomotora': placaAutomotora,
+      'nPlacaAutomotora': nPlacaAutomotora,
       'ingresoAccidente': ingresoAccidente,
       'tipoAutomotor': tipoAutomotor,
       'tipoServicio': tipoServicio,
-      'marca': marcaController.text,
-      'color': colorController.text,
-      //'inventario': inventario,
-      //'foto1Evidencia': foto1Evidencia,
-      //'foto2Evidencia': foto2Evidencia,
-      //'foto3Evidencia': foto3Evidencia,
-      //'foto4Evidencia': foto4Evidencia,
-      'observaciones': observacionesController.text,
+      'marca': marca,
+      'color': color,
+      'inventario': _fileName[0],
+      'foto1Evidencia': _fileName[1],
+      'foto2Evidencia': _fileName[2],
+      'foto3Evidencia': _fileName[3],
+      'foto4Evidencia': _fileName[4],
+      'observaciones': observaciones,
       'ingresoPropioPatio': ingresoPatio,
-    });
+    };
+
+    http.post(Uri.parse(url), body: dataSend);
+  }
+
+  void reset() {
+    _formKey.currentState?.reset();
+    placaAutomotoraController.clear();
+    nPlacaAutomotoraController.clear();
+    marcaController.clear();
+    colorController.clear();
+    observacionesController.clear();
+    imageLoaded = [false, false, false, false, false];
   }
 
   _alertConfirm(BuildContext context) {
@@ -168,12 +201,6 @@ class _FormPageState extends State<FormPage> {
                 onPressed: () {
                   if (!isValidForm()) return;
                   confirm();
-                  _formKey.currentState?.reset();
-                  placaAutomotoraController.clear();
-                  nPlacaAutomotoraController.clear();
-                  marcaController.clear();
-                  colorController.clear();
-                  observacionesController.clear();
                   Navigator.of(context).pop();
                   _alertSave(context);
                   print('Enviado');
@@ -201,6 +228,7 @@ class _FormPageState extends State<FormPage> {
                 child: const Text("Aceptar"),
                 onPressed: () {
                   Navigator.of(context).pop();
+                  reset();
                   print('Guardado');
                 }),
           ],
@@ -209,24 +237,56 @@ class _FormPageState extends State<FormPage> {
     );
   }
 
-  Future selectImage(op) async {
-    if (op == 1) {
-      _pickedFile = await _picker.pickImage(source: ImageSource.camera);
-    } else {
-      _pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    }
-    setState(() {
-      if (_pickedFile != null) {
-        imagen = File(_pickedFile.path);
-      } else {
-        print('No se seleccionó ninguna foto');
-      }
-    });
-    Navigator.of(context).pop();
-  }
-
   bool isValidForm() {
     return _formKey.currentState?.validate() ?? false;
+  }
+
+  Widget imageLoader(BuildContext context, Size size, String nameTitle, int id) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          nameTitle,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
+        ),
+        Container(
+          width: double.maxFinite,
+          decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+              border: Border.all(color: Colors.black45, width: 1)),
+          child: Container(
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(50.0)),
+            ),
+            alignment: Alignment.center,
+            child: Row(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black),
+                      color: Colors.grey),
+                  child: TextButton(
+                      onPressed: () async {
+                        imageLoaded[id] = await getImage(id);
+                      },
+                      child: const Text('Cargar archivo',
+                          style: TextStyle(color: Colors.black))),
+                ),
+                SizedBox(width: size.width * 0.02),
+                Text(
+                    imageLoaded[id]
+                        ? '$nameTitle cargado'
+                        : 'Seleccione un archivo',
+                    style: TextStyle(
+                        fontSize: 18.0,
+                        color:
+                            imageLoaded[id] ? Colors.black : Colors.black54)),
+              ],
+            ),
+          ),
+        )
+      ],
+    );
   }
 
   @override
@@ -261,12 +321,7 @@ class _FormPageState extends State<FormPage> {
               ),
               onTap: () {
                 if (isValidForm()) return;
-                _formKey.currentState?.reset();
-                placaAutomotoraController.clear();
-                nPlacaAutomotoraController.clear();
-                marcaController.clear();
-                colorController.clear();
-                observacionesController.clear();
+                reset();
               },
             ),
           ],
@@ -614,276 +669,20 @@ class _FormPageState extends State<FormPage> {
                                 }))
                       ],
                     ),
+
+                    // Cualquier vuelta
                     SizedBox(height: size.height * 0.02),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Inventario: ',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20.0),
-                        ),
-                        Container(
-                          width: double.maxFinite,
-                          decoration: BoxDecoration(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(5.0)),
-                              border:
-                                  Border.all(color: Colors.black45, width: 1)),
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(50.0)),
-                            ),
-                            alignment: Alignment.center,
-                            child: Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black),
-                                      color: Colors.grey),
-                                  child: TextButton(
-                                      onPressed: () {
-                                        opciones(1);
-                                      },
-                                      child: const Text('Cargar archivo',
-                                          style:
-                                              TextStyle(color: Colors.black))),
-                                ),
-                                SizedBox(width: size.width * 0.02),
-                                inventario == false
-                                    ? const Text('Seleccione un archivo',
-                                        style: TextStyle(
-                                            fontSize: 18.0,
-                                            color: Colors.black54))
-                                    : const Text(
-                                        'Inventario cargado',
-                                        style: TextStyle(
-                                            fontSize: 18.0,
-                                            color: Colors.black),
-                                      )
-                              ],
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
+                    imageLoader(context, size, 'Inventario', 0),
                     SizedBox(height: size.height * 0.02),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Foto 1 evidencia: ',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20.0),
-                        ),
-                        Container(
-                          width: double.maxFinite,
-                          decoration: BoxDecoration(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(5.0)),
-                              border:
-                                  Border.all(color: Colors.black45, width: 1)),
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(50.0)),
-                            ),
-                            alignment: Alignment.center,
-                            child: Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black),
-                                      color: Colors.grey),
-                                  child: TextButton(
-                                      onPressed: () {
-                                        opciones(2);
-                                      },
-                                      child: const Text('Cargar archivo',
-                                          style:
-                                              TextStyle(color: Colors.black))),
-                                ),
-                                SizedBox(width: size.width * 0.02),
-                                imagen1 == false
-                                    ? const Text('Seleccione un archivo',
-                                        style: TextStyle(
-                                            fontSize: 18.0,
-                                            color: Colors.black54))
-                                    : const Text(
-                                        'Foto 1 evidencia cargada',
-                                        style: TextStyle(
-                                            fontSize: 18.0,
-                                            color: Colors.black),
-                                      )
-                              ],
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
+                    imageLoader(context, size, 'Foto 1', 1),
                     SizedBox(height: size.height * 0.02),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Foto 2 evidencia: ',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20.0),
-                        ),
-                        Container(
-                          width: double.maxFinite,
-                          decoration: BoxDecoration(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(5.0)),
-                              border:
-                                  Border.all(color: Colors.black45, width: 1)),
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(50.0)),
-                            ),
-                            alignment: Alignment.center,
-                            child: Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black),
-                                      color: Colors.grey),
-                                  child: TextButton(
-                                      onPressed: () {
-                                        opciones(3);
-                                      },
-                                      child: const Text('Cargar archivo',
-                                          style:
-                                              TextStyle(color: Colors.black))),
-                                ),
-                                SizedBox(width: size.width * 0.02),
-                                imagen2 == false
-                                    ? const Text('Seleccione un archivo',
-                                        style: TextStyle(
-                                            fontSize: 18.0,
-                                            color: Colors.black54))
-                                    : const Text(
-                                        'Foto 2 evidencia cargada',
-                                        style: TextStyle(
-                                            fontSize: 18.0,
-                                            color: Colors.black),
-                                      )
-                              ],
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
+                    imageLoader(context, size, 'Foto 2', 2),
                     SizedBox(height: size.height * 0.02),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Foto 3 evidencia: ',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20.0),
-                        ),
-                        Container(
-                          width: double.maxFinite,
-                          decoration: BoxDecoration(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(5.0)),
-                              border:
-                                  Border.all(color: Colors.black45, width: 1)),
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(50.0)),
-                            ),
-                            alignment: Alignment.center,
-                            child: Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black),
-                                      color: Colors.grey),
-                                  child: TextButton(
-                                      onPressed: () {
-                                        opciones(4);
-                                      },
-                                      child: const Text('Cargar archivo',
-                                          style:
-                                              TextStyle(color: Colors.black))),
-                                ),
-                                SizedBox(width: size.width * 0.02),
-                                imagen3 == false
-                                    ? const Text('Seleccione un archivo',
-                                        style: TextStyle(
-                                            fontSize: 18.0,
-                                            color: Colors.black54))
-                                    : const Text(
-                                        'Foto 3 evidencia cargada',
-                                        style: TextStyle(
-                                            fontSize: 18.0,
-                                            color: Colors.black),
-                                      )
-                              ],
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
+                    imageLoader(context, size, 'Foto 3', 3),
                     SizedBox(height: size.height * 0.02),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Foto 4 evidencia: ',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20.0),
-                        ),
-                        Container(
-                          width: double.maxFinite,
-                          decoration: BoxDecoration(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(5.0)),
-                              border:
-                                  Border.all(color: Colors.black45, width: 1)),
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(50.0)),
-                            ),
-                            alignment: Alignment.center,
-                            child: Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black),
-                                      color: Colors.grey),
-                                  child: TextButton(
-                                      onPressed: () {
-                                        opciones(5);
-                                      },
-                                      child: const Text('Cargar archivo',
-                                          style:
-                                              TextStyle(color: Colors.black))),
-                                ),
-                                SizedBox(width: size.width * 0.02),
-                                imagen4 == false
-                                    ? const Text('Seleccione un archivo',
-                                        style: TextStyle(
-                                            fontSize: 18.0,
-                                            color: Colors.black54))
-                                    : const Text(
-                                        'Foto 4 evidencia cargada',
-                                        style: TextStyle(
-                                            fontSize: 18.0,
-                                            color: Colors.black),
-                                      )
-                              ],
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
+                    imageLoader(context, size, 'Foto 4', 4),
+                    // Cualquier vuelta
+
                     SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -911,7 +710,7 @@ class _FormPageState extends State<FormPage> {
                             ))
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -953,7 +752,7 @@ class _FormPageState extends State<FormPage> {
                             ))
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     MaterialButton(
                       minWidth: double.infinity,
                       onPressed: () {
